@@ -4,13 +4,14 @@ IN2 is a game engine for writing, compiling, and playing choice based text adven
 
 As an example:
 
+```
 > You stand looking over the edge of a cliff, gazing at a swirling mist through which you can barely see a light shining in the distance.
 > \--------
 > 1.) [ROPE] Use your rope to descend the cliff face.
 > 2.) Attempt to climb down the cliff.
 > 3.) Leave.
 > \--------
-
+```
 ### Installation
 
 You have two options for installation:
