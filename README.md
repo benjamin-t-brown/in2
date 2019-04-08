@@ -30,11 +30,11 @@ Some examples.
 ```
 
 *Interactive Comics*
-![https://imgur.com/IKPLPmi](https://imgur.com/IKPLPmi)
+![https://imgur.com/IKPLPmi](https://i.imgur.com/IKPLPmi.png)
 Taken from [Adalais in the Classroom](https://benjamin-t-brown.github.io/icomic1/)
 
 *RPG Dialogue Trees*
-![Screenshot 1](https://imgur.com/o69t2tM)
+![Screenshot 1](https://i.imgur.com/o69t2tM.png)
 Taken from [Sadelica](https://benjamin-t-brown.github.io/sadelica/)
 
 ### Installation and Running
