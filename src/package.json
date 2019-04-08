@@ -1,0 +1,50 @@
+{
+  "name": "in2",
+  "version": "0.1.0",
+  "description": "Scenario editor for the 'in2' project.",
+  "main": "src/index.js",
+  "readme": "readme",
+  "private": false,
+  "repository": {
+    "type": "https",
+    "url": "https://github.com/benjamin-t-brown/in2"
+  },
+  "dependencies": {
+    "jquery": "^3.2.1",
+    "jquery.panzoom": "^3.2.2",
+    "minimist": "^1.2.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  },
+  "devDependencies": {
+    "browserify": "^16.2.3",
+    "watchify": "^3.11.1",
+    "uglify-js": "^2.6.1",
+    "uglifycss": "0.0.26",
+    "acorn": "^6.1.1"
+  },
+  "config": {
+    "vendor_modules": [
+      "react",
+      "react-dom"
+    ],
+    "bundles": {
+      "vendor": "build/vendor.js",
+      "main": {
+        "out": "build/main.js",
+        "entry": "src/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "build-vendor": "node build.js build-vendor",
+    "build": "node build.js build",
+    "build-css": "node build.js build-css",
+    "watch": "node build.js watch",
+    "run": "node src-srv",
+    "clean": "node build.js clean",
+    "start": "node src-srv"
+  },
+  "author": "Benjamin Brown",
+  "license": "UNLICENSED"
+}

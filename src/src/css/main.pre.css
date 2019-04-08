@@ -1,0 +1,422 @@
+body {
+  background: $css.colors.BG;
+  position: absolute;
+  width: 100%;
+  overflow: hidden;
+  margin: 0px;
+  font-size: 14px;
+  font-family: '$css.font.main';
+}
+
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.no-drag {
+  -webkit-user-drag: none;
+}
+
+.movable {
+  cursor: move;
+}
+
+.player_visible {
+  height: 50%;
+}
+
+.player_invisible {
+  height: 100%;
+}
+
+.linking {
+  cursor: crosshair
+}
+
+.player-error {
+  color: white;
+  text-decoration: underline red;
+  cursor: default;
+}
+
+.player-error:hover {
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.file {
+  background-color: $css.colors.BG_NEUTRAL;
+}
+
+.file:hover {
+  background-color: $css.colors.FG_NEUTRAL;
+}
+
+.file-delete {
+  background-color: transparent;
+  color: red;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.file-delete:hover {
+  background-color: #A00;
+}
+
+.context-button {
+  background-color: transparent;
+  color: $css.colors.TEXT_DARK;
+  cursor: pointer;
+}
+
+.context-button:hover {
+  background-color: $css.colors.PRIMARY;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.item-error {
+  outline: 4px solid red;
+}
+
+;
+.item-active {
+  outline: 4px solid green;
+}
+
+;
+.item {}
+
+.item-delete {
+  background-color: transparent;
+  color: red;
+  cursor: pointer;
+  padding: 5px;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.item-delete: hover {
+  background-color: pink;
+}
+
+.item-root {
+  padding: 5px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.SECONDARY_ALT;
+  width: 50px;
+  min-height: 16px;
+  text-align: center;
+  background-color: $css.colors.SECONDARY;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.item-text {
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.SECONDARY;
+  width: 200px;
+  background-color: $css.colors.PRIMARY;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.item-text:hover {
+  filter: brightness(125%);
+}
+
+.item-choice {
+  padding: 15px;
+  cursor: pointer;
+  position: absolute;
+  border: 1px solid $css.colors.PRIMARY;
+  border-radius: 30px;
+  width: 200px;
+  background-color: $css.colors.SECONDARY;
+  color: $css.colors.TEXT_LIGHT;
+	min-height: 10px;
+}
+
+.item-choice:hover {
+  filter: brightness(125%);
+}
+
+.item-choice_text {
+  background-color: $css.colors.CHOICE_TEXT;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY;
+  width: 200px;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.item-choice_text:hover {
+  filter: brightness(125%);
+}
+
+.item-choice_conditional {
+  border-bottom-left-radius: 50px;
+  border-bottom-right-radius: 50px;
+  background-color: $css.colors.CONDITIONAL;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 3px;
+  padding-bottom: 10px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY;
+  width: 400px;
+  color: $css.colors.TEXT_LIGHT;
+  white-space: pre;
+}
+
+.item-choice_conditional:hover {
+  filter: brightness(125%);
+}
+
+.item-switch {
+  padding: 15px;
+  cursor: pointer;
+  position: absolute;
+  border: 1px solid $css.colors.PRIMARY;
+  border-radius: 30px;
+  width: 50px;
+  background-color: $css.colors.SWITCH;
+  color: $css.colors.TEXT_LIGHT;
+  min-height: 10px;
+}
+.item-switch:hover {
+  filter: brightness(125%);
+}
+
+.item-switch_conditional {
+  border-bottom-left-radius: 50px;
+  border-bottom-right-radius: 50px;
+  background-color: $css.colors.CONDITIONAL;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 3px;
+  padding-bottom: 10px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY;
+  width: 300px;
+  color: $css.colors.TEXT_LIGHT;
+}
+.item-switch_conditional:hover {
+  filter: brightness(125%);
+}
+
+.item-switch_default {
+  border-bottom-left-radius: 50px;
+  border-bottom-right-radius: 50px;
+  background-color: $css.colors.TEXT_DARK;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 3px;
+  padding-bottom: 10px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY;
+  width: 80px;
+  color: $css.colors.TEXT_LIGHT;
+  white-space: pre;
+}
+.item-switch_default:hover {
+  filter: brightness(125%);
+}
+
+.item-pass_fail {
+  background-color: $css.colors.CONDITIONAL;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY;
+  width: 400px;
+  color: $css.colors.TEXT_LIGHT;
+  white-space: nowrap;
+}
+
+.item-pass_fail:hover {
+  filter: brightness(125%);
+}
+
+.item-pass_text {
+  background-color: $css.colors.CONFIRM;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY;
+  width: 200px;
+  color: $css.colors.TEXT_LIGHT;
+  min-height: 10px;
+}
+
+.item-pass_text:hover {
+  filter: brightness(125%);
+}
+
+.item-fail_text {
+  background-color: $css.colors.CANCEL;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY;
+  width: 200px;
+  color: $css.colors.TEXT_LIGHT;
+	min-height: 10px;
+}
+
+.item-fail_text:hover {
+  filter: brightness(125%);
+}
+
+.item-action {
+  background-color: $css.colors.ACTION;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.SECONDARY;
+  width: 400px;
+  white-space: pre;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.item-action:hover {
+  filter: brightness(125%);
+}
+
+.item-chunk {
+  background-color: #5e9871;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.SECONDARY;
+  width: 400px;
+  white-space: pre;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.item-chunk:hover {
+  filter: brightness(125%);
+}
+
+.item-trigger {
+  background-color:#967D00;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY;
+  width: 200px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: $css.colors.TEXT_LIGHT;
+  min-height: 10px;
+}
+
+.item-trigger:hover {
+  filter: brightness(125%);
+}
+
+.item-next_file {
+  background-color: $css.colors.TEXT_LIGHT;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.PRIMARY_ALT;
+  width: 200px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: $css.colors.TEXT_DARK;
+}
+
+.item-next_file:hover {
+  filter: brightness(125%);
+}
+
+.anchor-to {
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  top: -10px;
+  left: 0;
+}
+
+.anchor-from {
+  width: 100%;
+  height: 1px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.jtk-hover {
+  cursor: pointer;
+}
+
+.jtk-drag-selected {
+  border: 1px solid red;
+}
+
+.confirm-button {
+  background-color: $css.colors.CONFIRM;
+  padding: 5px;
+  width: 80px;
+  margin: 5px;
+  text-align: center;
+  cursor: pointer;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.confirm-button:hover {
+  background-color: rgb( 50%, 50%, 50%);
+}
+
+.cancel-button {
+  background-color: $css.colors.CANCEL;
+  padding: 5px;
+  width: 80px;
+  margin: 5px;
+  text-align: center;
+  cursor: pointer;
+  color: $css.colors.TEXT_LIGHT;
+}
+
+.cancel-button:hover {
+  background-color: rgb( 50%, 50%, 50%);
+}
+
+
+/* The animation code */
+@keyframes fade-in {
+    from {color: transparent;}
+    to {color: $css.colors.TEXT_LIGHT;}
+}
+
+.new-player-text {
+	animation-name: fade-in;
+	animation-duration: 0.5s;
+}
