@@ -9,8 +9,9 @@ IN2 is a tool for writing large, complex dialogue trees.  Features include:
 	- custom code boxes that can execute arbitrary commands
 	- expandabilty to support any kind of engine that can represent a JSON tree structure.
 
-## Screenshots:
+## Screenshot:
 
+![in2 Screenshot](https://i.imgur.com/vFWKKqQ.png)
 
 ## Example Usages:
 
@@ -30,12 +31,16 @@ Some examples.
 ```
 
 *Interactive Comics*
-![https://imgur.com/IKPLPmi](https://i.imgur.com/IKPLPmi.png)
+
 Taken from [Adalais in the Classroom](https://benjamin-t-brown.github.io/icomic1/)
 
+![https://imgur.com/IKPLPmi](https://i.imgur.com/IKPLPmi.png)
+
 *RPG Dialogue Trees*
-![Screenshot 1](https://i.imgur.com/o69t2tM.png)
+
 Taken from [Sadelica](https://benjamin-t-brown.github.io/sadelica/)
+
+![Screenshot 1](https://i.imgur.com/o69t2tM.png)
 
 ### Installation and Running
 
@@ -53,4 +58,4 @@ cd $REPO_DIR/src
 node src-srv
 ```
 
-Then navigate to "http://localhost:8080"
+Then navigate to "http://localhost:8888"
