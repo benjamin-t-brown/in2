@@ -1,0 +1,36 @@
+parser: 'babel-eslint'
+
+extends:
+  - 'react-app'
+  - 'plugin:prettier/recommended'
+
+plugins:
+  - 'babel'
+  - 'prettier'
+  - 'mocha'
+
+settings:
+  react:
+    version: 'detect'
+
+env:
+  browser: true
+  mocha: true
+
+overrides:
+  - files: '**/*.test.js'
+    rules:
+      no-class-assign: 0
+      no-console: 0
+      no-unused-vars: 0
+      no-unused-expressions: 0
+
+rules:
+  prettier/prettier:
+    - 2
+    - bracketSpacing: true
+      singleQuote: true
+      tabWidth: 2
+      trailingComma: 'es5'
+  no-lone-blocks: 0
+  no-throw-literal: 0

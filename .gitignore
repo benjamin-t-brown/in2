@@ -7,3 +7,5 @@ SafePoint/*
 npm-debug.log
 *.compiled.js
 *.compiled.cpp
+dist/main.js
+dist/main.min.js
