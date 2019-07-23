@@ -9,3 +9,5 @@ npm-debug.log
 *.compiled.cpp
 dist/main.js
 dist/main.min.js
+save/*.json
+save/icomic1/

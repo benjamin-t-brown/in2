@@ -4,8 +4,8 @@ var exec = require('child_process').exec;
 const argv = require('minimist')(process.argv.slice(2));
 
 const DIST_DIR = __dirname + '/../dist/';
-const SAVE_DIR = __dirname + '/../save';
-const COMPILER_DIR = __dirname + '/../src-compile';
+const SAVE_DIR = __dirname + '/../save/';
+const COMPILER_DIR = __dirname + '/../src-compile/';
 const COMPILER_OUT = __dirname + '/../src-compile/out';
 
 let compiler = 'compiler.js';
@@ -18,7 +18,7 @@ if (argv.cpp) {
 
 var PORT = 8888;
 
-http_server.start(PORT, __dirname + '/..');
+http_server.start(PORT, __dirname + '/../dist/');
 process.on('SIGINT', function() {
   console.log('SIGINT');
   process.exit();
@@ -67,13 +67,15 @@ function on_exec_compiled(resp, cb, err, stdout) {
 
 //Compile a specific list of files
 http_server.post('compile', (obj, resp, data) => {
-  var cmd = `cd ${COMPILER_DIR} && node compiler.js --files ` + data.files.join(',');
+  const cmd = `cd ${COMPILER_DIR} && node compiler.js --files ` + data.files.join(',');
   console.log(cmd);
   exec(
     cmd,
     on_exec_compiled.bind(null, resp, (err, ret) => {
       if (ret.success) {
-        ret.file = fs.readFileSync(`${COMPILER_OUT}/main.compiled.js`).toString();
+        ret.file = fs
+          .readFileSync(`${COMPILER_OUT}/main.compiled.${extension}`)
+          .toString();
       }
       http_server.reply(resp, {
         err: err,
@@ -85,7 +87,7 @@ http_server.post('compile', (obj, resp, data) => {
 
 //Compile a single file or every file
 http_server.get('compile', (obj, resp) => {
-  var cmd = `cd ${COMPILER_DIR} && node ${compiler}`;
+  let cmd = `cd ${COMPILER_DIR} && node ${compiler}`;
   if (obj.event_args[0]) {
     cmd += ` --file ${obj.event_args[0]}`;
     console.log(cmd);
@@ -144,7 +146,7 @@ http_server.del('file', (obj, resp) => {
 http_server.get('file', (obj, resp) => {
   if (obj.event_args[0]) {
     fs.readFile(SAVE_DIR + '/' + obj.event_args[0], (err, data) => {
-      var ret_data;
+      let ret_data;
       try {
         ret_data = JSON.parse(data.toString());
       } catch (e) {
@@ -160,7 +162,7 @@ http_server.get('file', (obj, resp) => {
     });
   } else {
     fs.readdir(__dirname + '/../save', (err, dirs) => {
-      var ret = {
+      const ret = {
         err: err,
         data: null,
       };
@@ -168,7 +170,7 @@ http_server.get('file', (obj, resp) => {
         if (dir === 'DONT_DELETE' || dir.indexOf('loader.js') > -1) {
           return false;
         }
-        if (fs.statSync(__dirname + '/../save/' + dir).isDirectory()) {
+        if (fs.statSync(SAVE_DIR + '/' + dir).isDirectory()) {
           return false;
         }
         return true;
@@ -180,7 +182,7 @@ http_server.get('file', (obj, resp) => {
 
 http_server.get('images', (obj, resp) => {
   fs.readdir(`${DIST_DIR}/assets/img/`, (err, dirs) => {
-    var ret = {
+    const ret = {
       err: err,
       data: null,
     };
