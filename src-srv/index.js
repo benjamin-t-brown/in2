@@ -1,6 +1,6 @@
-var http_server = require('./http-server');
-var fs = require('fs');
-var exec = require('child_process').exec;
+const http_server = require('./http-server');
+const fs = require('fs');
+const exec = require('child_process').exec;
 const argv = require('minimist')(process.argv.slice(2));
 
 const DIST_DIR = __dirname + '/../dist/';
@@ -16,7 +16,7 @@ if (argv.cpp) {
   extension = 'cpp';
 }
 
-var PORT = 8888;
+const PORT = 8888;
 
 http_server.start(PORT, __dirname + '/../dist/');
 process.on('SIGINT', function() {
@@ -34,23 +34,23 @@ process.on('exit', function() {
 console.log('Now listening on port: ' + PORT);
 
 function on_exec_compiled(resp, cb, err, stdout) {
-  var ret = {
+  const ret = {
     success: true,
   };
   console.log('STDOUT', stdout);
   if (stdout.search('-------------') > -1) {
     ret.success = false;
-    var ind1 = stdout.indexOf('-------------');
-    var ind2 = stdout.lastIndexOf('-------------');
-    var error_text = stdout.slice(ind1 + 14, ind2 - 1);
-    var error_list = error_text.split('\n\n');
+    const ind1 = stdout.indexOf('-------------');
+    const ind2 = stdout.lastIndexOf('-------------');
+    const error_text = stdout.slice(ind1 + 14, ind2 - 1);
+    const error_list = error_text.split('\n\n');
     ret.errors = error_list.map(error => {
-      var arr = error.split('|');
-      var filename = arr[0] || 'none';
-      var node_id = arr[1] || 'none';
-      var text = arr[2] || 'none';
+      const arr = error.split('|');
+      const filename = arr[0] || 'none';
+      const node_id = arr[1] || 'none';
+      let text = arr[2] || 'none';
       console.log('ARR', arr.length, text);
-      var ind = text.indexOf('CONTENT');
+      const ind = text.indexOf('CONTENT');
       if (ind > -1) {
         text = text.slice(0, ind - 1);
       }

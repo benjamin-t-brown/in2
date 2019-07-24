@@ -742,8 +742,9 @@ class Board extends expose.Component {
       content_style = 'style="overflow:hidden;text-overflow:ellipsis"';
     }
     let className = 'item-' + node.type;
+    console.log('NODE ID', node.id);
     return (
-      `<div class="${className}" ` +
+      `<div class="node ${className}" ` +
       `style="${style_str}" id="${node.id}" ` +
       `onmousedown="on_node_click(${node.id})" ` +
       `onmouseup="on_node_unclick(${node.id})" ` +

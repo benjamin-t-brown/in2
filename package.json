@@ -48,6 +48,7 @@
     ]
   },
   "dependencies": {
+    "minimist": "^1.2.0",
     "jquery": "^3.4.1",
     "jquery.panzoom": "^3.2.3",
     "open-cli": "^5.0.0",

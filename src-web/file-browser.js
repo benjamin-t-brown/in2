@@ -7,11 +7,11 @@ const $ = require('jquery');
 
 //This file represents the file browser on the right side of the screen.
 //It can:
-// 1.) List all files from the api endpoint at GET http://localhost:8888/file
-// 2.) Load a file onto the board when it is clicked at GET http://localhost:8888/file/<filename>
+// 1.) List all files from the api endpoint at GET /file
+// 2.) Load a file onto the board when it is clicked at GET /file/<filename>
 // 3.) Rename a file if it is double clicked
 // 4.) Create a new file by clicking the button at the top
-// 5.) Delete a file by clicking the red 'x' on the right at DEL GET http://localhost:8888/file/<filename>
+// 5.) Delete a file by clicking the red 'x' on the right at DEL GET /file/<filename>
 // 6.) Uses LocalStorage to remember the last file you had open
 
 module.exports = class FileBrowser extends expose.Component {
@@ -350,8 +350,7 @@ module.exports = class FileBrowser extends expose.Component {
         style: {
           backgroundColor: css.colors.BG_NEUTRAL,
           overflowY: 'scroll',
-          width: '100%',
-          height: '100%',
+          height: window.innerHeight + 'px',
         },
       },
       React.createElement(

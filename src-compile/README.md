@@ -8,11 +8,3 @@ IN2 has startup configuration to utilize a compiler when writing output.  The de
 	* compiler.cpp.js - compiles a C++ file that relies on outside tools to be run
 
 When running IN2, clicking on the "compile" button will compile the currently selected file using the active compiler.  The output is placed inside the "out" folder under the name "{filename}.compiled.(js/cpp)".  Clicking on the "compile all" button will aggregate all the files together into a file called "main.compiled.(js/cpp)".  Errors that are thrown by the compiler are sent back via stdout to the invoking server.
-
-## Content Testing
-
-If you want to run a completed dialogue tree (js only) you can compile it, then run the following command.
-
-```
-
-```
