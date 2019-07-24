@@ -6,8 +6,9 @@ import context from 'context';
 import dialog from 'dialog';
 import css from 'css';
 const $ = (window.$ = require('jquery'));
-// require('jquery.panzoom');
 const jsPlumb = window.jsPlumb;
+
+const BOARD_SIZE_PIXELS = 6400;
 
 window.on_node_click = function(elem) {
   console.log('Click Event Not Overwritten!', elem);
@@ -92,8 +93,8 @@ class Board extends expose.Component {
         parentElem: this.diagramContainer.current,
         deltaY: ev.deltaY,
         scale: this.zoom,
-        areaWidth: 6400,
-        areaHeight: 6400,
+        areaWidth: BOARD_SIZE_PIXELS,
+        areaHeight: BOARD_SIZE_PIXELS,
         offsetX: this.offsetX,
         offsetY: this.offsetY,
         focalX: ev.clientX,
@@ -804,8 +805,8 @@ class Board extends expose.Component {
 const styles = theme => ({
   diagramArea: {
     position: 'relative',
-    width: '6400px',
-    height: '6400px',
+    width: BOARD_SIZE_PIXELS + 'px',
+    height: BOARD_SIZE_PIXELS + 'px',
   },
   diagramParent: {
     position: 'absolute',
