@@ -1,17 +1,23 @@
 {
-  "name": "gloriam",
-  "version": "1.0.0",
-  "description": "Ad Gloriam Et Imperium wrapper game+comic",
-  "main": "index.js",
+  "name": "in2",
+  "version": "1.1.0",
+  "description": "IN2 Tree Builder",
+  "main": "src-web/index.js",
   "scripts": {
-    "start": "npm run build && open-cli http://localhost:8080/index.html --background && http-server dist -d -g -i -p 8080 -c-1",
+    "start": "npm run build && open-cli http://localhost:8888/index.html --background && npm run server",
+    "start:cpp": "npm run build && open-cli http://localhost:8888/index.html --background && npm run server:cpp",
+    "server": "node src-srv",
+    "server:cpp": "node src-srv --cpp",
     "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --require @babel/register --timeout 99999",
-    "build": "webpack && terser --compress --mangle -o dist/main.min.js -- dist/main.js",
-    "watch": "webpack-dev-server --progress"
+    "build": "node build.js build-css && webpack --progress && terser --compress --mangle -o dist/main.min.js -- dist/main.js",
+    "webpack-server": "webpack-dev-server",
+    "watch": "concurrently -n srv,webpack \"npm run server\" \"npm run webpack-server\"",
+    "watch:cpp": "concurrently -n srv,webpack \"npm run server:cpp\" \"npm run webpack-server\"",
+    "build-css": "node build.js build-css"
   },
   "repository": {
     "type": "git",
-    "url": "github.com/benjamin-t-brown/gloriam.git"
+    "url": "github.com/benjamin-t-brown/in2.git"
   },
   "keywords": [
     "game"
@@ -24,7 +30,7 @@
         "module-resolver",
         {
           "root": [
-            "./src"
+            "./src-web"
           ]
         }
       ]
@@ -42,12 +48,14 @@
     ]
   },
   "dependencies": {
-    "http-server": "^0.11.1",
     "minimist": "^1.2.0",
+    "jquery": "^3.4.1",
+    "jquery.panzoom": "^3.2.3",
     "open-cli": "^5.0.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-dom-factories": "^1.0.2"
+    "react-dom-factories": "^1.0.2",
+    "react-jss": "^8.6.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
@@ -60,6 +68,7 @@
     "babel-loader": "^8.0.5",
     "babel-plugin-module-resolver": "^3.2.0",
     "chai": "^4.2.0",
+    "concurrently": "^4.1.1",
     "cross-env": "^5.2.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^6.0.0",
@@ -75,6 +84,7 @@
     "mocha": "^6.1.4",
     "prettier": "^1.18.2",
     "terser": "^4.0.0",
+    "uglifycss": "0.0.29",
     "webpack": "^4.31.0",
     "webpack-cli": "^3.3.2",
     "webpack-dev-server": "^3.7.2"

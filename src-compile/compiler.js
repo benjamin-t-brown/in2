@@ -208,7 +208,7 @@ class Compiler {
               this.error(
                 file.name,
                 condition_child.id,
-                'Choice Condition node has no child.\n CONTENT ${condition_child.content}'
+                `Choice Condition node has no child.\n CONTENT ${condition_child.content}`
               );
               return null;
             }
@@ -259,8 +259,8 @@ class Compiler {
         ret = ret.slice(0, -1);
         ret += `]);\n};\n\n`;
         var is_invalid = false;
-        for (var i in nodes_to_compile) {
-          var child = nodes_to_compile[i];
+        for (let j in nodes_to_compile) {
+          var child = nodes_to_compile[j];
           var r = this.compileNode(child, file);
           if (r) {
             ret += r;
