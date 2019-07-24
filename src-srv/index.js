@@ -1,6 +1,6 @@
-var http_server = require('./http-server');
-var fs = require('fs');
-var exec = require('child_process').exec;
+const http_server = require('./http-server');
+const fs = require('fs');
+const exec = require('child_process').exec;
 const argv = require('minimist')(process.argv.slice(2));
 
 const DIST_DIR = __dirname + '/../dist/';
@@ -16,7 +16,7 @@ if (argv.cpp) {
   extension = 'cpp';
 }
 
-var PORT = 8888;
+const PORT = 8888;
 
 http_server.start(PORT, __dirname + '/..');
 process.on('SIGINT', function() {
@@ -34,23 +34,23 @@ process.on('exit', function() {
 console.log('Now listening on port: ' + PORT);
 
 function on_exec_compiled(resp, cb, err, stdout) {
-  var ret = {
+  const ret = {
     success: true,
   };
   console.log('STDOUT', stdout);
   if (stdout.search('-------------') > -1) {
     ret.success = false;
-    var ind1 = stdout.indexOf('-------------');
-    var ind2 = stdout.lastIndexOf('-------------');
-    var error_text = stdout.slice(ind1 + 14, ind2 - 1);
-    var error_list = error_text.split('\n\n');
+    const ind1 = stdout.indexOf('-------------');
+    const ind2 = stdout.lastIndexOf('-------------');
+    const error_text = stdout.slice(ind1 + 14, ind2 - 1);
+    const error_list = error_text.split('\n\n');
     ret.errors = error_list.map(error => {
-      var arr = error.split('|');
-      var filename = arr[0] || 'none';
-      var node_id = arr[1] || 'none';
-      var text = arr[2] || 'none';
+      const arr = error.split('|');
+      const filename = arr[0] || 'none';
+      const node_id = arr[1] || 'none';
+      const text = arr[2] || 'none';
       console.log('ARR', arr.length, text);
-      var ind = text.indexOf('CONTENT');
+      const ind = text.indexOf('CONTENT');
       if (ind > -1) {
         text = text.slice(0, ind - 1);
       }
@@ -67,7 +67,7 @@ function on_exec_compiled(resp, cb, err, stdout) {
 
 //Compile a specific list of files
 http_server.post('compile', (obj, resp, data) => {
-  var cmd = `cd ${COMPILER_DIR} && node compiler.js --files ` + data.files.join(',');
+  const cmd = `cd ${COMPILER_DIR} && node compiler.js --files ` + data.files.join(',');
   console.log(cmd);
   exec(
     cmd,
@@ -85,7 +85,7 @@ http_server.post('compile', (obj, resp, data) => {
 
 //Compile a single file or every file
 http_server.get('compile', (obj, resp) => {
-  var cmd = `cd ${COMPILER_DIR} && node ${compiler}`;
+  const cmd = `cd ${COMPILER_DIR} && node ${compiler}`;
   if (obj.event_args[0]) {
     cmd += ` --file ${obj.event_args[0]}`;
     console.log(cmd);
@@ -144,7 +144,7 @@ http_server.del('file', (obj, resp) => {
 http_server.get('file', (obj, resp) => {
   if (obj.event_args[0]) {
     fs.readFile(SAVE_DIR + '/' + obj.event_args[0], (err, data) => {
-      var ret_data;
+      let ret_data;
       try {
         ret_data = JSON.parse(data.toString());
       } catch (e) {
@@ -160,7 +160,7 @@ http_server.get('file', (obj, resp) => {
     });
   } else {
     fs.readdir(__dirname + '/../save', (err, dirs) => {
-      var ret = {
+      const ret = {
         err: err,
         data: null,
       };
@@ -180,7 +180,7 @@ http_server.get('file', (obj, resp) => {
 
 http_server.get('images', (obj, resp) => {
   fs.readdir(`${DIST_DIR}/assets/img/`, (err, dirs) => {
-    var ret = {
+    const ret = {
       err: err,
       data: null,
     };
