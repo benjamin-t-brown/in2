@@ -1,14 +1,13 @@
-const React = require('react');
-const expose = require('./expose');
-const css = require('css');
-
-const FileBrowser = require('./file-browser');
-const Board = require('./board');
-const PlayerArea = require('./player-area');
+import React from 'react';
+import expose from 'expose';
+import css from 'css';
+import Board from 'board';
+import FileBrowser from 'file-browser';
+import PlayerArea from 'player-area';
 
 window.expose = expose;
 
-module.exports = class MainContainer extends expose.Component {
+export default class MainContainer extends expose.Component {
   constructor(props) {
     super(props);
     this.expose('main');

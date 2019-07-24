@@ -209,6 +209,63 @@ module.exports = {
         console.error('Fetch POST Error', err, url);
       });
   },
+  renderAt: function({ elem, scale, offsetX, offsetY }) {
+    if (!elem) {
+      return;
+    }
+
+    const newStyle = {
+      transform: `scale(${scale})`,
+      left: -1 * offsetX * scale,
+      right: offsetX * scale,
+      top: -1 * (offsetY * scale),
+      bottom: offsetY * scale,
+    };
+    for (let styleName in newStyle) {
+      elem.style[styleName] = newStyle[styleName];
+    }
+  },
+  zoomWithFocalAndDelta: function({
+    parentElem,
+    deltaY,
+    scale,
+    areaWidth,
+    areaHeight,
+    offsetX,
+    offsetY,
+    focalX,
+    focalY,
+    maxZoom,
+    minZoom,
+  }) {
+    const { top, left } = parentElem.getBoundingClientRect();
+
+    const eventDelta = deltaY > 0 ? -1 : 1;
+    let nextScale = scale + eventDelta / 10;
+    if (nextScale > maxZoom) {
+      nextScale = maxZoom;
+    } else if (nextScale < minZoom) {
+      nextScale = minZoom;
+    }
+    const clientX = focalX - left;
+    const clientY = focalY - top;
+    const percentXInCurrentBox = clientX / areaWidth;
+    const percentYInCurrentBox = clientY / areaHeight;
+    const currentBoxWidth = areaWidth / scale;
+    const currentBoxHeight = areaHeight / scale;
+    const nextBoxWidth = areaWidth / nextScale;
+    const nextBoxHeight = areaHeight / nextScale;
+    const dX = (nextBoxWidth - currentBoxWidth) * (percentXInCurrentBox - 0.5);
+    const dY = (nextBoxHeight - currentBoxHeight) * (percentYInCurrentBox - 0.5);
+    const nextOffsetX = offsetX - dX;
+    const nextOffsetY = offsetY - dY;
+
+    return {
+      offsetX: nextOffsetX,
+      offsetY: nextOffsetY,
+      scale: nextScale,
+    };
+  },
 };
 
 window.utils = module.exports;

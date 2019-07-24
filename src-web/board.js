@@ -1,11 +1,12 @@
-const React = require('react');
-const css = require('css');
-const utils = require('utils');
-const context = require('context');
-const dialog = require('dialog');
-const expose = require('expose');
+import React, { createRef } from 'react';
+import injectSheet from 'react-jss';
+import expose from 'expose';
+import utils from 'utils';
+import context from 'context';
+import dialog from 'dialog';
+import css from 'css';
 const $ = (window.$ = require('jquery'));
-require('jquery.panzoom');
+// require('jquery.panzoom');
 const jsPlumb = window.jsPlumb;
 
 window.on_node_click = function(elem) {
@@ -28,31 +29,35 @@ window.on_delete_click = function(elem) {
   console.log('DeleteClick Event Not Overwritten!', elem);
 };
 
-module.exports = class Board extends expose.Component {
+class Board extends expose.Component {
   constructor(props) {
     super(props);
     const state = {};
 
+    this.diagramContainer = createRef();
+    this.diagramParent = createRef();
+    this.diagram = createRef();
+
     this.plumb = null;
     this.file = props.file;
     this.panning = false;
-    this.offset_x = 0;
-    this.offset_y = 0;
-    this.last_mouse_x = 0;
-    this.last_mouse_y = 0;
-    this.last_offset_x = 0;
-    this.last_offset_y = 0;
-    this.link_node = null;
-    this.drag_set = [];
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.lastMouseX = 0;
+    this.lastMouseY = 0;
+    this.lastOffsetX = 0;
+    this.lastOffsetY = 0;
+    this.linkNode = null;
+    this.dragSet = [];
     this.zoom = 1;
-    this.max_zoom = 4;
-    this.min_zoom = 1;
+    this.maxZoom = 1;
+    this.minZoom = 0.2;
 
     this.onKeydown = ev => {
-      if (this.link_node && ev.keyCode === 27) {
+      if (this.linkNode && ev.keyCode === 27) {
         this.exitLinkMode();
-      } else if (this.drag_set.length && ev.keyCode === 27) {
-        this.drag_set = [];
+      } else if (this.dragSet.length && ev.keyCode === 27) {
+        this.dragSet = [];
         this.plumb.clearDragSelection();
       }
     };
@@ -62,20 +67,18 @@ module.exports = class Board extends expose.Component {
         return;
       }
       this.panning = true;
-      let style = document.getElementById('diagram-parent').style.transform;
-      let ind = style.indexOf('matrix');
-      if (ind > -1) {
-        let str = style.slice(ind);
-        let arr = str.split(', ');
-        this.offset_x = this.last_offset_x = parseFloat(arr[4]);
-        this.offset_y = this.last_offset_y = parseFloat(arr[5]);
-      }
+      this.lastOffsetX = this.offsetX;
+      this.lastOffsetY = this.offsetY;
+      this.lastMouseX = ev.clientX;
+      this.lastMouseY = ev.clientY;
     };
 
     this.onMouseMove = ev => {
       if (this.panning) {
-        this.offset_x = this.last_offset_x - (this.last_mouse_x - ev.clientX);
-        this.offset_y = this.last_offset_y - (this.last_mouse_y - ev.clientY);
+        this.offsetX =
+          this.lastOffsetX + (this.lastMouseX - ev.clientX) * (1 / this.zoom);
+        this.offsetY =
+          this.lastOffsetY + (this.lastMouseY - ev.clientY) * (1 / this.zoom);
         this.renderAtOffset();
       }
     };
@@ -85,61 +88,59 @@ module.exports = class Board extends expose.Component {
     };
 
     this.onScroll = ev => {
-      let scalechange;
-      if (ev.deltaY > 0) {
-        //scroll down
-        scalechange = 0.5;
-      } else {
-        scalechange = -0.5;
-      }
-      this.zoom += scalechange;
-      if (this.zoom > this.max_zoom) {
-        this.zoom = 4; //all the way out
-      } else if (this.zoom < this.min_zoom) {
-        this.zoom = 1; //all the way in
-      }
-      $('#diagram-parent').panzoom('zoom', 1 / this.zoom, {
-        focal: ev,
+      const { offsetX, offsetY, scale } = utils.zoomWithFocalAndDelta({
+        parentElem: this.diagramContainer.current,
+        deltaY: ev.deltaY,
+        scale: this.zoom,
+        areaWidth: 6400,
+        areaHeight: 6400,
+        offsetX: this.offsetX,
+        offsetY: this.offsetY,
+        focalX: ev.clientX,
+        focalY: ev.clientY,
+        maxZoom: this.maxZoom,
+        minZoom: this.minZoom,
+      });
+
+      this.zoom = scale;
+      this.offsetX = offsetX;
+      this.offsetY = offsetY;
+
+      utils.renderAt({
+        elem: this.diagramParent.current,
+        offsetX: this.offsetX,
+        offsetY: this.offsetY,
+        scale: this.zoom,
+        offsetWithScale: true,
       });
     };
 
-    this.onDiagramDblClick = () => {
-      // if ( !dialog.is_visible() && ev.nativeEvent.target.id === 'diagram' ) {
-      // 	if ( this.zoom === 1 ) {
-      // 		this.zoom = this.max_zoom;
-      // 	} else {
-      // 		this.zoom = 1;
-      // 	}
-      // 	$( '#diagram-parent' ).panzoom( 'zoom', 1 / this.zoom, {
-      // 		focal: ev
-      // 	} );
-      // }
-    };
+    this.onDiagramDblClick = () => {};
 
     this.onNodeClick = window.on_node_click = elem => {
       let file_node = this.getNode(elem.id);
-      if (this.link_node) {
-        let err = this.addLink(this.link_node, file_node);
+      if (this.linkNode) {
+        let err = this.addLink(this.linkNode, file_node);
         if (err) {
           console.error('Error', 'Cannot create link', err);
           dialog.show_notification('Cannot create link. ' + err);
         }
         this.exitLinkMode();
       } else if (utils.is_shift() || utils.is_ctrl()) {
-        let ind = this.drag_set.indexOf(file_node.id);
+        let ind = this.dragSet.indexOf(file_node.id);
         if (ind === -1) {
           this.plumb.addToDragSelection(file_node.id);
-          this.drag_set.push(file_node.id);
+          this.dragSet.push(file_node.id);
         } else {
           this.plumb.removeFromDragSelection(file_node.id);
-          this.drag_set.splice(ind, 1);
+          this.dragSet.splice(ind, 1);
         }
       }
     };
 
     this.onNodeUnclick = window.on_node_unclick = elem => {
       let file_node = this.getNode(elem.id);
-      $('#diagram-parent').panzoom('enable');
+      //$('#diagram-parent').panzoom('enable');
       file_node.left = elem.style.left;
       file_node.top = elem.style.top;
       this.file.nodes.forEach(node_file => {
@@ -188,7 +189,6 @@ module.exports = class Board extends expose.Component {
           file_node.content = content;
           document.getElementById(file_node.id).children[0].innerHTML = content;
           this.buildDiagram();
-          //this.renderAtOffset();
           this.saveFile();
         });
       }
@@ -210,8 +210,8 @@ module.exports = class Board extends expose.Component {
     this.onDeleteClick = window.on_delete_click = elem => {
       dialog.show_confirm('Are you sure you wish to delete this node?', () => {
         this.deleteNode(this.getNode(elem.id));
-        if (this.drag_set.includes(elem.id)) {
-          this.drag_set.forEach(id => {
+        if (this.dragSet.includes(elem.id)) {
+          this.dragSet.forEach(id => {
             if (id !== elem.id) {
               const node = this.getNode(id);
               if (node.type !== 'root') {
@@ -219,7 +219,7 @@ module.exports = class Board extends expose.Component {
               }
             }
           });
-          this.drag_set = [];
+          this.dragSet = [];
           this.plumb.clearDragSelection();
         }
       });
@@ -265,8 +265,8 @@ module.exports = class Board extends expose.Component {
       if (n) {
         let area = document.getElementById('player-resizer').getBoundingClientRect();
         let node = document.getElementById(node_id).getBoundingClientRect();
-        this.offset_x = -(parseInt(n.left) - (area.width - 200) / 2 + node.width / 2);
-        this.offset_y = -(parseInt(n.top) - area.height / 2 + node.height / 2);
+        this.offsetX = -(parseInt(n.left) - (area.width - 200) / 2 + node.width / 2);
+        this.offsetY = -(parseInt(n.top) - area.height / 2 + node.height / 2);
         this.renderAtOffset();
       }
     };
@@ -275,17 +275,17 @@ module.exports = class Board extends expose.Component {
     this.copySelection = () => {
       const node_mapping = {};
       const links = [];
-      const nodes = this.drag_set.map(id => {
+      const nodes = this.dragSet.map(id => {
         const node = this.getNode(id);
         const new_node = Object.assign({}, node);
         new_node.id = utils.random_id(10);
         node_mapping[node.id] = new_node.id;
         return new_node;
       });
-      this.drag_set.forEach(id => {
+      this.dragSet.forEach(id => {
         const children = this.getChildren(this.getNode(id));
         children.forEach(child => {
-          if (this.drag_set.includes(child.id)) {
+          if (this.dragSet.includes(child.id)) {
             links.push({
               from: node_mapping[id],
               to: node_mapping[child.id],
@@ -293,58 +293,58 @@ module.exports = class Board extends expose.Component {
           }
         });
       });
-      this.copy_set = { nodes, links };
+      this.copySet = { nodes, links };
     };
     state.copySelection = this.copySelection;
 
     this.pasteSelection = () => {
-      if (this.copy_set) {
-        let root_ind = -1;
+      if (this.copySet) {
+        let rootInd = -1;
 
-        const new_links = JSON.parse(JSON.stringify(this.copy_set.links));
-        const new_nodes = this.copy_set.nodes.map((node, i) => {
-          const new_id = utils.random_id(10);
-          const new_node = Object.assign({}, node);
-          new_links.forEach(link => {
+        const newLinks = JSON.parse(JSON.stringify(this.copySet.links));
+        const newNodes = this.copySet.nodes.map((node, i) => {
+          const newId = utils.random_id(10);
+          const newNode = Object.assign({}, node);
+          newLinks.forEach(link => {
             if (link.to === node.id) {
-              link.to = new_id;
+              link.to = newId;
             }
             if (link.from === node.id) {
-              link.from = new_id;
+              link.from = newId;
             }
           });
-          new_node.id = new_id;
-          new_node.left = parseInt(node.left) + 25 + 'px';
-          new_node.top = parseInt(node.top) + 25 + 'px';
-          if (new_node.type === 'root') {
-            root_ind = i;
+          newNode.id = newId;
+          newNode.left = parseInt(node.left) + 25 + 'px';
+          newNode.top = parseInt(node.top) + 25 + 'px';
+          if (newNode.type === 'root') {
+            rootInd = i;
           }
-          return new_node;
+          return newNode;
         });
 
-        if (root_ind > -1) {
-          const new_root = new_nodes.splice(root_ind, 1)[0];
-          const old_root = this.file.nodes[0];
-          old_root.content = new_root.content;
-          new_links.forEach(link => {
-            if (link.from === new_root.id) {
-              link.from = old_root.id;
+        if (rootInd > -1) {
+          const newRoot = newNodes.splice(rootInd, 1)[0];
+          const oldRoot = this.file.nodes[0];
+          oldRoot.content = newRoot.content;
+          newLinks.forEach(link => {
+            if (link.from === newRoot.id) {
+              link.from = oldRoot.id;
             }
           });
         }
 
-        new_nodes.forEach(node => {
+        newNodes.forEach(node => {
           this.file.nodes.push(node);
         });
-        new_links.forEach(link => {
+        newLinks.forEach(link => {
           this.file.links.push(link);
         });
-        this.drag_set = [];
+        this.dragSet = [];
         this.plumb.clearDragSelection();
         this.buildDiagram();
-        new_nodes.forEach(node => {
+        newNodes.forEach(node => {
           this.plumb.addToDragSelection(node.id);
-          this.drag_set.push(node.id);
+          this.dragSet.push(node.id);
         });
         this.saveFile();
       }
@@ -399,19 +399,14 @@ module.exports = class Board extends expose.Component {
     this.exitLinkMode();
   }
   componentDidUpdate() {
-    this.offset_x = 0;
-    this.offset_y = 0;
+    this.offsetX = 0;
+    this.offsetY = 0;
     this.zoom = 1;
-    this.plumb.empty(document.getElementById('diagram'));
+    this.plumb.empty(this.diagram.current);
     jsPlumb.ready(() => {
       this.buildDiagram();
       this.renderAtOffset();
     });
-  }
-  renderAtOffset() {
-    const offset = `translate( ${this.offset_x}px, ${this.offset_y}px ) scale( ${1 /
-      this.zoom}, ${1 / this.zoom} )`;
-    document.getElementById('diagram-parent').style.transform = offset;
   }
 
   saveFile() {
@@ -427,43 +422,19 @@ module.exports = class Board extends expose.Component {
   }
 
   buildDiagram() {
-    let file = this.file;
+    const file = this.file;
     if (file) {
-      let html = file.nodes.reduce((prev, curr) => {
+      const html = file.nodes.reduce((prev, curr) => {
         return prev + this.getNodeHTML(curr);
       }, '');
       this.plumb && this.plumb.reset();
       window.plumb = this.plumb = jsPlumb.getInstance({
         PaintStyle: { strokeWidth: 1 },
         Anchors: [['TopRight']],
-        Container: document.getElementById('diagram'),
+        Container: this.diagram.current,
       });
-      let diagram = document.getElementById('diagram');
-      if (this.panzoom_instance) {
-        this.panzoom_instance.dispose();
-      }
+      const diagram = this.diagram.current;
       diagram.innerHTML = html;
-      $('#diagram-parent').panzoom();
-      $('#diagram-parent').panzoom('option', {
-        increment: 0.3,
-        minScale: 1 / 4,
-        maxScale: 1,
-        which: 2,
-        onZoom: ev => {
-          let zoom = parseFloat(ev.target.style.transform.slice(7));
-          this.getPlumb().setZoom(zoom);
-        },
-      });
-      // somehow this fixes the problem where zoom level messes up node dragging
-      setTimeout(() => {
-        let zoom = parseFloat(
-          document.getElementById('diagram-parent').style.transform.slice(7)
-        );
-        this.getPlumb().setZoom(zoom);
-
-        $('#diagram-parent').panzoom('zoom', 1 / this.zoom);
-      }, 100);
-
       this.plumb.draggable(
         file.nodes.map(node => {
           return node.id;
@@ -484,13 +455,14 @@ module.exports = class Board extends expose.Component {
 
   enterLinkMode(parent) {
     setTimeout(() => {
-      this.link_node = parent;
-      document.getElementById('diagram-area').className = 'no-drag linking';
+      this.linkNode = parent;
+      this.diagramArea.current.class =
+        'no-drag linking ' + this.props.classes.diagramArea;
     }, 150);
   }
   exitLinkMode() {
-    this.link_node = false;
-    document.getElementById('diagram-area').className = 'no-drag movable';
+    this.linkNode = false;
+    this.diagramArea.current.class = 'no-drag movable ' + this.props.classes.diagramArea;
   }
 
   getNode(id) {
@@ -788,54 +760,67 @@ module.exports = class Board extends expose.Component {
     );
   }
 
+  renderAtOffset() {
+    utils.renderAt({
+      elem: this.diagramParent.current,
+      scale: this.zoom,
+      offsetX: this.offsetX,
+      offsetY: this.offsetY,
+    });
+  }
+
   render() {
-    return React.createElement(
-      'div',
-      {
-        id: 'diagram-area',
-        className: 'no-drag movable',
-        onMouseDown: ev => {
-          this.panning = true;
-          this.last_mouse_x = ev.pageX;
-          this.last_mouse_y = ev.pageY;
-          this.last_offset_x = this.offset_x;
-          this.last_offset_y = this.offset_y;
+    const { classes } = this.props;
+    return (
+      <div
+        id="diagram-area"
+        className={'no-drag movable ' + classes.diagramArea}
+        ref={this.diagramContainer}
+        onMouseDown={ev => {
           ev.preventDefault();
-        },
-        onDragStart: ev => {
+        }}
+        onDragStart={ev => {
           ev.preventDefault();
           return false;
-        },
-        onDrop: ev => {
+        }}
+        onDrop={ev => {
           ev.preventDefault();
           return false;
-        },
-        style: {
-          position: 'relative',
-          width: '6400px',
-          height: '6400px',
-        },
-      },
-      React.createElement(
-        'div',
-        {
-          id: 'diagram-parent',
-          onDoubleClick: this.onDiagramDblClick,
-          style: {
-            width: '100%',
-            height: '100%',
-          },
-        },
-        React.createElement('div', {
-          id: 'diagram',
-          className: 'no-drag',
-          style: {
-            width: '100%',
-            height: '100%',
-            backgroundColor: css.colors.BG,
-          },
-        })
-      )
+        }}
+      >
+        <div
+          id="diagram-parent"
+          ref={this.diagramParent}
+          className={classes.diagramParent}
+        >
+          <div id="diagram" ref={this.diagram} className={'no-drag ' + classes.diagram} />
+        </div>
+      </div>
     );
   }
-};
+}
+
+const styles = theme => ({
+  diagramArea: {
+    position: 'relative',
+    width: '6400px',
+    height: '6400px',
+  },
+  diagramParent: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    left: 0,
+    top: 0,
+  },
+  diagram: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backgroundColor: theme.colors.BG,
+  },
+});
+
+export default injectSheet(styles)(Board);

@@ -186,10 +186,10 @@ module.exports = class PlayerArea extends expose.Component {
           ev.nativeEvent.stopImmediatePropagation();
         },
         onMouseEnter: () => {
-          $('#diagram-parent').panzoom('disable');
+          //$('#diagram-parent').panzoom('disable');
         },
         onMouseLeave: () => {
-          $('#diagram-parent').panzoom('enable');
+          //$('#diagram-parent').panzoom('enable');
         },
         style: {
           height: window.innerHeight / 2 + 'px',

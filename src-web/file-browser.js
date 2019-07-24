@@ -342,10 +342,10 @@ module.exports = class FileBrowser extends expose.Component {
           ev.nativeEvent.stopImmediatePropagation();
         },
         onMouseEnter: () => {
-          $('#diagram-parent').panzoom('disable');
+          //$('#diagram-parent').panzoom('disable');
         },
         onMouseLeave: () => {
-          $('#diagram-parent').panzoom('enable');
+          //$('#diagram-parent').panzoom('enable');
         },
         style: {
           backgroundColor: css.colors.BG_NEUTRAL,
