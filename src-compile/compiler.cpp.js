@@ -2,9 +2,9 @@ const fs = require('fs');
 
 //This program can compile compatible json files into IN2 *.compiled.js files.
 //Usage:
-//  Compile all files within the ${ProjectDir}/tree-builder/save directory into ${ProjectDir}/src/main.compiled.js
+//  Compile all files within the ${ProjectDir}/save directory into ${ProjectDir}/src-compile/main.compiled.js
 //    node compiler.js
-//  Compile file <filename> within the ${ProjectDir}/tree-builder/save directory into ${ProjectDir}/src/out/<filename>.compiled.js
+//  Compile file <filename> within the ${ProjectDir}/save directory into ${ProjectDir}/src-compile/out/<filename>.compiled.js
 //    node compiler.js --file <filename>
 
 //node types:
@@ -218,7 +218,7 @@ class Compiler {
               this.error(
                 file.name,
                 condition_child.id,
-                'Choice Condition node has no child.\n CONTENT ${condition_child.content}'
+                `Choice Condition node has no child.\n CONTENT ${condition_child.content}`
               );
               return null;
             }
@@ -777,24 +777,21 @@ const argv = require('minimist')(process.argv.slice(2));
 
 if (argv.file) {
   console.log('Compiling ' + argv.file + '...');
-  compile(
-    [__dirname + '/../tree-builder/save/' + argv.file],
-    '/out/' + argv.file + '.compiled.cpp'
-  );
+  compile([__dirname + '/../save/' + argv.file], '/out/' + argv.file + '.compiled.cpp');
 } else if (argv.files) {
   console.log('Compiling ' + argv.files + '...');
   const filelist = argv.files.split(',').map(filename => {
-    return __dirname + '/../tree-builder/save/' + filename;
+    return __dirname + '/../save/' + filename;
   });
   compile(filelist, '/main.compiled.cpp');
 } else {
-  fs.readdir(__dirname + '/../tree-builder/save', (err, dirs) => {
+  fs.readdir(__dirname + '/../save', (err, dirs) => {
     dirs = dirs
       .filter(dir => {
         if (dir === 'DONT_DELETE' || dir.indexOf('loader.js') > -1) {
           return false;
         }
-        if (fs.statSync(__dirname + '\\..\\tree-builder\\save\\' + dir).isDirectory()) {
+        if (fs.statSync(__dirname + '\\..\\save\\' + dir).isDirectory()) {
           return false;
         }
         return true;
@@ -809,7 +806,7 @@ if (argv.file) {
         }
       })
       .map(dir => {
-        return __dirname + '/../tree-builder/save/' + dir;
+        return __dirname + '/../save/' + dir;
       });
     console.log('Compiling...');
     for (const i in dirs) {

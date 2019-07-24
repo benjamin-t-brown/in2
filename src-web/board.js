@@ -36,8 +36,8 @@ module.exports = class Board extends expose.Component {
     this.plumb = null;
     this.file = props.file;
     this.panning = false;
-    this.offset_x = 0;
-    this.offset_y = 0;
+    this.offsetX = 0;
+    this.offsetY = 0;
     this.last_mouse_x = 0;
     this.last_mouse_y = 0;
     this.last_offset_x = 0;
@@ -67,15 +67,15 @@ module.exports = class Board extends expose.Component {
       if (ind > -1) {
         let str = style.slice(ind);
         let arr = str.split(', ');
-        this.offset_x = this.last_offset_x = parseFloat(arr[4]);
-        this.offset_y = this.last_offset_y = parseFloat(arr[5]);
+        this.offsetX = this.last_offset_x = parseFloat(arr[4]);
+        this.offsetY = this.last_offset_y = parseFloat(arr[5]);
       }
     };
 
     this.onMouseMove = ev => {
       if (this.panning) {
-        this.offset_x = this.last_offset_x - (this.last_mouse_x - ev.clientX);
-        this.offset_y = this.last_offset_y - (this.last_mouse_y - ev.clientY);
+        this.offsetX = this.last_offset_x - (this.last_mouse_x - ev.clientX);
+        this.offsetY = this.last_offset_y - (this.last_mouse_y - ev.clientY);
         this.renderAtOffset();
       }
     };
@@ -85,22 +85,58 @@ module.exports = class Board extends expose.Component {
     };
 
     this.onScroll = ev => {
-      let scalechange;
-      if (ev.deltaY > 0) {
-        //scroll down
-        scalechange = 0.5;
-      } else {
-        scalechange = -0.5;
-      }
-      this.zoom += scalechange;
-      if (this.zoom > this.max_zoom) {
-        this.zoom = 4; //all the way out
+      // const scale = 1 / this.zoom;
+
+      // const mouseX = ev.clientX;
+      // const mouseY = ev.clientY;
+      // let originX = this.offset_x;
+      // let originY = this.offset_y;
+      // const wheel = ev.deltaY < 0 ? 1 : -1;
+      // const zoom = Math.exp(wheel * 0.2);
+      // let newOriginX = mouseX / (scale * zoom) - mouseX / scale;
+      // let newOriginY = mouseY / (scale * zoom) - mouseY / scale;
+
+      const delta = ev.deltaY > 0 ? 0.5 : -0.5;
+      let newZoom = this.zoom + delta;
+      if (newZoom > this.max_zoom) {
+        newZoom = 4; //all the way out
       } else if (this.zoom < this.min_zoom) {
-        this.zoom = 1; //all the way in
+        newZoom = 1; //all the way in
       }
-      $('#diagram-parent').panzoom('zoom', 1 / this.zoom, {
-        focal: ev,
-      });
+
+      // const focal = {
+      //   x: ev.clientX,
+      //   y: ev.clientY,
+      // };
+
+      // this.zoom = newZoom;
+
+      const width = 6400;
+      const height = 6400;
+
+      const oldScale = 1 / this.zoom;
+      const newScale = 1 / newZoom;
+
+      const oldWidth = oldScale * width;
+      const oldHeight = oldScale * height;
+
+      const newWidth = newScale * width;
+      const newHeight = newScale * height;
+
+      // const mDistX = ev.clientX / window.innerWidth;
+      // const mDistY = ev.clientY / window.innerHeight;
+
+      const mDistX = 0;
+      const mDistY = 0;
+
+      const scaleChange = newScale - oldScale;
+      this.offsetX = (scaleChange * 20);
+      this.offsetY = (scaleChange * 20);
+
+      console.log('VAR', oldScale, newScale, this.zoom, newZoom, scaleChange, this.zoom);
+
+      this.zoom = newZoom;
+      this.renderAtOffset();
     };
 
     this.onDiagramDblClick = () => {
@@ -265,8 +301,8 @@ module.exports = class Board extends expose.Component {
       if (n) {
         let area = document.getElementById('player-resizer').getBoundingClientRect();
         let node = document.getElementById(node_id).getBoundingClientRect();
-        this.offset_x = -(parseInt(n.left) - (area.width - 200) / 2 + node.width / 2);
-        this.offset_y = -(parseInt(n.top) - area.height / 2 + node.height / 2);
+        this.offsetX = -(parseInt(n.left) - (area.width - 200) / 2 + node.width / 2);
+        this.offsetY = -(parseInt(n.top) - area.height / 2 + node.height / 2);
         this.renderAtOffset();
       }
     };
@@ -399,8 +435,8 @@ module.exports = class Board extends expose.Component {
     this.exitLinkMode();
   }
   componentDidUpdate() {
-    this.offset_x = 0;
-    this.offset_y = 0;
+    this.offsetX = 0;
+    this.offsetY = 0;
     this.zoom = 1;
     this.plumb.empty(document.getElementById('diagram'));
     jsPlumb.ready(() => {
@@ -409,8 +445,9 @@ module.exports = class Board extends expose.Component {
     });
   }
   renderAtOffset() {
-    const offset = `translate( ${this.offset_x}px, ${this.offset_y}px ) scale( ${1 /
-      this.zoom}, ${1 / this.zoom} )`;
+    const scale = 1 / this.zoom;
+    const offset = `translate(${this.offsetX}px, ${this.offsetY}px) scale(${scale}, ${scale})`;
+    console.log('RENDER AT OFFSET', this.offsetX, this.offsetY, scale);
     document.getElementById('diagram-parent').style.transform = offset;
   }
 
@@ -439,39 +476,37 @@ module.exports = class Board extends expose.Component {
         Container: document.getElementById('diagram'),
       });
       let diagram = document.getElementById('diagram');
-      if (this.panzoom_instance) {
-        this.panzoom_instance.dispose();
-      }
       diagram.innerHTML = html;
-      $('#diagram-parent').panzoom();
-      $('#diagram-parent').panzoom('option', {
-        increment: 0.3,
-        minScale: 1 / 4,
-        maxScale: 1,
-        which: 2,
-        onZoom: ev => {
-          let zoom = parseFloat(ev.target.style.transform.slice(7));
-          this.getPlumb().setZoom(zoom);
-        },
-      });
-      // somehow this fixes the problem where zoom level messes up node dragging
-      setTimeout(() => {
-        let zoom = parseFloat(
-          document.getElementById('diagram-parent').style.transform.slice(7)
-        );
-        this.getPlumb().setZoom(zoom);
+      //$('#diagram-parent').panzoom();
+      // $('#diagram-parent').panzoom('option', {
+      //   increment: 0.3,
+      //   minScale: 1 / 4,
+      //   maxScale: 1,
+      //   which: 2,
+      //   onZoom: ev => {
+      //     let zoom = parseFloat(ev.target.style.transform.slice(7));
+      //     this.getPlumb().setZoom(zoom);
+      //   },
+      // });
 
-        $('#diagram-parent').panzoom('zoom', 1 / this.zoom);
-      }, 100);
+      // HACK: somehow this fixes the problem where zoom level messes up node dragging
+      // setTimeout(() => {
+      //   let zoom = parseFloat(
+      //     document.getElementById('diagram-parent').style.transform.slice(7)
+      //   );
+      //   this.getPlumb().setZoom(zoom);
+      // }, 100);
 
-      this.plumb.draggable(
-        file.nodes.map(node => {
-          return node.id;
-        }),
-        {
-          containment: true,
-        }
-      );
+      this.plumb.draggable($('.node'));
+
+      // this.plumb.draggable(
+      //   file.nodes.map(node => {
+      //     return node.id;
+      //   }),
+      //   {
+      //     containment: true,
+      //   }
+      // );
       this.plumb.batch(() => {
         file.links.forEach(this.connectLink);
       });
@@ -770,8 +805,9 @@ module.exports = class Board extends expose.Component {
       content_style = 'style="overflow:hidden;text-overflow:ellipsis"';
     }
     let className = 'item-' + node.type;
+    console.log('NODE ID', node.id);
     return (
-      `<div class="${className}" ` +
+      `<div class="node ${className}" ` +
       `style="${style_str}" id="${node.id}" ` +
       `onmousedown="on_node_click(${node.id})" ` +
       `onmouseup="on_node_unclick(${node.id})" ` +
@@ -798,8 +834,8 @@ module.exports = class Board extends expose.Component {
           this.panning = true;
           this.last_mouse_x = ev.pageX;
           this.last_mouse_y = ev.pageY;
-          this.last_offset_x = this.offset_x;
-          this.last_offset_y = this.offset_y;
+          this.last_offset_x = this.offsetX;
+          this.last_offset_y = this.offsetY;
           ev.preventDefault();
         },
         onDragStart: ev => {

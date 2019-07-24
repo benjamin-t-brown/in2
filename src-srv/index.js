@@ -48,7 +48,7 @@ function on_exec_compiled(resp, cb, err, stdout) {
       const arr = error.split('|');
       const filename = arr[0] || 'none';
       const node_id = arr[1] || 'none';
-      const text = arr[2] || 'none';
+      let text = arr[2] || 'none';
       console.log('ARR', arr.length, text);
       const ind = text.indexOf('CONTENT');
       if (ind > -1) {

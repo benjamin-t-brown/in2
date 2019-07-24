@@ -1,5 +1,5 @@
 // This is a mock for the scene class in the tree builder, used to assist content
-// creaters when writing JavaScript based dialogue trees.
+// creators when writing JavaScript based dialogue trees.
 
 module.exports = {
   fps: 30,
