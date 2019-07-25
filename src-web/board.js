@@ -261,11 +261,24 @@ class Board extends expose.Component {
       connection.bind('contextmenu', this.onConnRClick);
     };
 
-    this.centerOnNode = node_id => {
-      let n = this.getNode(node_id);
+    this.centerOnNode = nodeId => {
+      let n = this.getNode(nodeId);
       if (n) {
-        let area = document.getElementById('player-resizer').getBoundingClientRect();
-        let node = document.getElementById(node_id).getBoundingClientRect();
+        const {
+          top: containerTop,
+          left: containerLeft,
+          width: containerWidth,
+          height: containerHeight,
+        } = this.dialogContainer.current.getBoundingClientRect();
+        const {
+          top: nodeTop,
+          left: nodeLeft,
+          width: nodeWidth,
+          height: nodeHeight,
+        } = document.getElementById(nodeId).getBoundingClientRect();
+
+
+
         this.offsetX = -(parseInt(n.left) - (area.width - 200) / 2 + node.width / 2);
         this.offsetY = -(parseInt(n.top) - area.height / 2 + node.height / 2);
         this.renderAtOffset();
