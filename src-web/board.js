@@ -114,6 +114,8 @@ class Board extends expose.Component {
         scale: this.zoom,
         offsetWithScale: true,
       });
+
+      this.getPlumb().setZoom(this.zoom);
     };
 
     this.onDiagramDblClick = () => {};
