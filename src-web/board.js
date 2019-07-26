@@ -474,13 +474,14 @@ class Board extends expose.Component {
   enterLinkMode(parent) {
     setTimeout(() => {
       this.linkNode = parent;
-      this.diagramArea.current.class =
+      this.diagramContainer.current.class =
         'no-drag linking ' + this.props.classes.diagramArea;
     }, 150);
   }
   exitLinkMode() {
     this.linkNode = false;
-    this.diagramArea.current.class = 'no-drag movable ' + this.props.classes.diagramArea;
+    this.diagramContainer.current.class =
+      'no-drag movable ' + this.props.classes.diagramArea;
   }
 
   getNode(id) {

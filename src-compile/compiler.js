@@ -675,7 +675,7 @@ class Compiler {
 }
 
 const output_result = function(result, output_url) {
-  fs.writeFile(__dirname + output_url, result, err => {
+  fs.writeFile(__dirname + '/' + output_url, result, err => {
     if (err) {
       console.error('Error writing output ' + output_url, err);
     } else {
@@ -697,40 +697,42 @@ const output_errors = function(errors) {
 };
 
 //the first file listed in "input_files" will be the entrypoint for the program
-const compile = function(input_files, output_url) {
-  let num_started = 0;
-  let num_finished = 0;
+const compile = function(inputFiles, outputUrls) {
+  let numStarted = 0;
+  let numFinished = 0;
   const c = new Compiler();
-  let aggregated_result = c.getHeader();
-  let main_file_name = '';
+  let aggregatedResult = c.getHeader();
+  let mainFileName = '';
   const failed_files = [];
-  input_files.forEach((filename, i) => {
-    num_started++;
+  inputFiles.forEach((filename, i) => {
+    numStarted++;
     c.readAndCompile(filename, (result, file) => {
-      num_finished++;
+      numFinished++;
       if (file) {
         if (i === 0) {
-          main_file_name = file.name;
+          mainFileName = file.name;
         }
         if (result && !c.hasError(file.name)) {
-          aggregated_result += '\n\n' + result;
+          aggregatedResult += '\n\n' + result;
         } else {
           failed_files.push(file.name);
         }
       }
-      if (num_started === num_finished) {
+      if (numStarted === numFinished) {
         if (c.errors.length) {
           output_errors(c.errors);
           console.log(
-            `Failed. Could not compile ${failed_files.length} of ${input_files.length} files:`
+            `Failed. Could not compile ${failed_files.length} of ${inputFiles.length} files:`
           );
           for (const j in failed_files) {
             console.log(' ' + failed_files[j]);
           }
         }
-        aggregated_result = aggregated_result + c.getFooter(main_file_name);
+        aggregatedResult = aggregatedResult + c.getFooter(mainFileName);
         console.log();
-        output_result(aggregated_result, output_url);
+        outputUrls.forEach(outputUrl => {
+          output_result(aggregatedResult, outputUrl);
+        });
       }
     });
   });
@@ -740,13 +742,13 @@ const argv = require('minimist')(process.argv.slice(2));
 
 if (argv.file) {
   console.log('Compiling ' + argv.file + '...');
-  compile([__dirname + '/../save/' + argv.file], '/out/' + argv.file + '.compiled.js');
+  compile([__dirname + '/../save/' + argv.file], ['/out/' + argv.file + '.compiled.js']);
 } else if (argv.files) {
   console.log('Compiling ' + argv.files + '...');
   const filelist = argv.files.split(',').map(filename => {
     return __dirname + '/../save/' + filename;
   });
-  compile(filelist, '/main.compiled.js');
+  compile(filelist, ['main.compiled.js']);
 } else {
   fs.readdir(__dirname + '/../save', (err, dirs) => {
     dirs = dirs
@@ -776,6 +778,10 @@ if (argv.file) {
       console.log(' ' + dirs[i]);
     }
     console.log();
-    compile(dirs, '/main.compiled.js');
+    compile(dirs, [
+      'main.compiled.js',
+      'out/main.compiled.js',
+      '../src-js-standalone/main.js',
+    ]);
   });
 }

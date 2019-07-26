@@ -13,7 +13,8 @@
     "webpack-server": "webpack-dev-server",
     "watch": "concurrently -n srv,webpack \"npm run server\" \"npm run webpack-server\"",
     "watch:cpp": "concurrently -n srv,webpack \"npm run server:cpp\" \"npm run webpack-server\"",
-    "build-css": "node build.js build-css"
+    "build-css": "node build.js build-css",
+    "build-standalone": "node build.js build-standalone"
   },
   "repository": {
     "type": "git",

@@ -4,11 +4,71 @@ const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 const css = require('./src-web/css');
 const uglifycss = require('uglifycss');
+const Terser = require('terser');
+const shell = require('child_process');
+
+const _executeAsync = async function(cmd) {
+  return new Promise(resolve => {
+    console.log(cmd);
+    const obj = shell.exec(
+      cmd,
+      {
+        env: env,
+      },
+      resolve
+    );
+    obj.stdout.pipe(process.stdout);
+    obj.stderr.pipe(process.stderr);
+  });
+};
 
 const env = Object.create(process.env);
 env.NPM_CONFIG_COLOR = 'always';
 
 const rules = {
+  'build-standalone': async function(cb) {
+    const index = fs.readFileSync('src-js-standalone/index.html');
+    const engine = fs.readFileSync('src-js-standalone/engine.js');
+    const main = fs.readFileSync('src-compile/main.compiled.js');
+
+    const script = '<script src="main.min.js"></script>';
+    let didInsertScript = false;
+    const newIndex = index
+      .toString()
+      .split('\n')
+      .map(line => {
+        if (line.indexOf('script') > -1) {
+          if (didInsertScript) {
+            return script;
+          } else {
+            didInsertScript = true;
+            return '';
+          }
+        } else {
+          return line;
+        }
+      })
+      .join('\n')
+      .replace(/[\n]{2,}/g, '\n');
+
+    const mainMin = Terser.minify(
+      {
+        'main.js': engine.toString() + '\n' + main.toString(),
+      },
+      {
+        warnings: true,
+      }
+    );
+    if (mainMin.error) throw mainMin.error;
+    if (mainMin.warnings) console.warn(mainMin.warnings);
+    fs.writeFileSync('standalone/index.html', newIndex);
+    fs.writeFileSync('standalone/main.min.js', mainMin.code);
+    await _executeAsync(
+      'zip -9 standalone/standalone.zip standalone/index.html standalone/main.min.js'
+    );
+    await _executeAsync(`stat -c '%n %s' standalone/standalone.zip`);
+    await _executeAsync(`stat -c '%n %b' standalone/standalone.zip`);
+  },
   'build-css': function(cb) {
     build_css(cb);
   },
