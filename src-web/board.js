@@ -107,14 +107,7 @@ class Board extends expose.Component {
       this.offsetX = offsetX;
       this.offsetY = offsetY;
 
-      utils.renderAt({
-        elem: this.diagramParent.current,
-        offsetX: this.offsetX,
-        offsetY: this.offsetY,
-        scale: this.zoom,
-        offsetWithScale: true,
-      });
-
+      this.renderAtOffset();
       this.getPlumb().setZoom(this.zoom);
     };
 
@@ -263,14 +256,36 @@ class Board extends expose.Component {
       connection.bind('contextmenu', this.onConnRClick);
     };
 
-    this.centerOnNode = node_id => {
-      let n = this.getNode(node_id);
+    this.centerOnNode = nodeId => {
+      const n = this.getNode(nodeId);
       if (n) {
-        let area = document.getElementById('player-resizer').getBoundingClientRect();
-        let node = document.getElementById(node_id).getBoundingClientRect();
-        this.offsetX = -(parseInt(n.left) - (area.width - 200) / 2 + node.width / 2);
-        this.offsetY = -(parseInt(n.top) - area.height / 2 + node.height / 2);
+        const area = document.getElementById('player-area').getBoundingClientRect();
+        const node = document.getElementById(nodeId).getBoundingClientRect();
+        this.offsetX = parseInt(n.left) - (area.width / 2 - 260) - node.width / 2;
+        this.offsetY = parseInt(n.top) - area.height / 2 - node.height / 2;
+        //const lastZoom = this.zoom;
+        this.zoom = 1;
         this.renderAtOffset();
+        this.getPlumb().setZoom(this.zoom);
+
+        // TODO add this
+        // const { offsetX, offsetY, scale } = utils.zoomWithFocalAndDelta({
+        //   parentElem: this.diagramContainer.current,
+        //   deltaY: ev.deltaY,
+        //   scale: this.zoom,
+        //   areaWidth: BOARD_SIZE_PIXELS,
+        //   areaHeight: BOARD_SIZE_PIXELS,
+        //   offsetX: this.offsetX,
+        //   offsetY: this.offsetY,
+        //   focalX: ev.clientX,
+        //   focalY: ev.clientY,
+        //   maxZoom: this.maxZoom,
+        //   minZoom: this.minZoom,
+        // });
+
+        // this.zoom = scale;
+        // this.offsetX = offsetX;
+        // this.offsetY = offsetY;
       }
     };
     state.centerOnNode = this.centerOnNode;
@@ -745,7 +760,6 @@ class Board extends expose.Component {
       content_style = 'style="overflow:hidden;text-overflow:ellipsis"';
     }
     let className = 'item-' + node.type;
-    console.log('NODE ID', node.id);
     return (
       `<div class="node ${className}" ` +
       `style="${style_str}" id="${node.id}" ` +

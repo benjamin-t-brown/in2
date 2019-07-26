@@ -26,6 +26,7 @@
   "license": "ISC",
   "babel": {
     "plugins": [
+      "@babel/plugin-proposal-optional-chaining",
       [
         "module-resolver",
         {
@@ -48,19 +49,20 @@
     ]
   },
   "dependencies": {
-    "minimist": "^1.2.0",
     "jquery": "^3.4.1",
-    "jquery.panzoom": "^3.2.3",
+    "minimist": "^1.2.0",
     "open-cli": "^5.0.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-dom-factories": "^1.0.2",
-    "react-jss": "^8.6.1"
+    "react-jss": "^8.6.1",
+    "recompose": "^0.30.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.5",
     "@babel/node": "^7.4.5",
+    "@babel/plugin-proposal-optional-chaining": "^7.2.0",
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-react": "^7.0.0",
     "@babel/register": "^7.4.4",

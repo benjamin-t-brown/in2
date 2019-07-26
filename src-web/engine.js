@@ -480,7 +480,8 @@ class Scene {
         return;
       }
 
-      this.canvas = document.getElementById(canvas_id);
+      this.canvas =
+        document.getElementById(canvas_id) || document.createElement('canvas');
       this.ctx = this.canvas.getContext('2d');
       this.drawLoading();
 
@@ -768,9 +769,10 @@ exports.init = function(canvas_id, cb) {
   exports._core.catcher.enable();
   exports._player.init();
   exports._scene.load(canvas_id, cb);
-  if (!exports._scene.running) {
-    exports._scene.loop();
-  }
+  cb();
+  // if (!exports._scene.running) {
+  //   exports._scene.loop();
+  // }
 };
 
 exports.core = function() {
