@@ -20,15 +20,48 @@ let lastChooseNodesSelected;
 let lines = [];
 let catcher = new KeyCatcher();
 
-let addLine = text => {
-  let html =
-    '<div style="max-width:600px;min-height:100%;margin-left:auto;margin-right:auto;background-color:#303030;padding:5px">';
-  lines.push(`${(text || '').replace(/\n/g, '<br/>')}`);
-  lines.forEach((line, i) => {
-    if (line.indexOf('Press any key to continue') > -1 && i < lines.length - 1) {
+let bodyStyle = {
+  'font-family': 'monospace',
+  margin: '0px',
+  'background-color': '#1D1E19',
+};
+let textareaStyle = {
+  'max-width': '600px',
+  'min-height': '100%',
+  'margin-left': 'auto',
+  'margin-right': 'auto',
+  'background-color': '#303030',
+  padding: '5px',
+};
+let textStyle = {
+  color: '#ABAE81',
+};
+let choiceStyle = {
+  color: '#EFEFEF',
+};
+let chosenStyle = {
+  color: '#BFB',
+};
+
+let stylize = style => {
+  let agg = '';
+  for (let i in style) {
+    agg += i + ':' + style[i] + ';';
+  }
+  return agg;
+};
+
+let addLine = (text, style) => {
+  let html = `<div style=${stylize(textareaStyle)}>`;
+  lines.push({
+    t: `${(text || '').replace(/\n/g, '<br/>')}`,
+    s: stylize(style || textStyle),
+  });
+  lines.forEach(({ t, s }, i) => {
+    if (t.indexOf('Press any key') > -1 && i < lines.length - 1) {
       return;
     }
-    html += `<p>${line}</p>`;
+    html += `<p style="${s}">${t}</p>`;
   });
   document.body.innerHTML = html + '</div>';
   window.scrollTo(0, document.body.scrollHeight);
@@ -55,7 +88,7 @@ window.Core = class {
       if (text.length <= 1) {
         return cb();
       } else {
-        addLine(text);
+        addLine(text, disableNextSayWait && chosenStyle);
       }
     }
 
@@ -78,7 +111,7 @@ window.Core = class {
       addLine(text);
       addLine();
     }
-    addLine(sep);
+    addLine(sep, choiceStyle);
     const actualChoices = choices.filter(choice => {
       if (choice.condition()) {
         return true;
@@ -92,10 +125,10 @@ window.Core = class {
     }
     let ctr = 1;
     actualChoices.forEach(choice => {
-      addLine('<b>  ' + ctr + '.) ' + choice.text + '</b>');
+      addLine('<b>  ' + ctr + '.) ' + choice.text + '</b>', choiceStyle);
       ctr++;
     });
-    addLine(sep);
+    addLine(sep, choiceStyle);
     catcher.setK(key => {
       const choice = actualChoices[key - 1];
       if (choice) {
@@ -163,3 +196,4 @@ window.Player = class {
 
 window.player = new window.Player();
 window.core = new window.Core();
+document.body.style = stylize(bodyStyle);

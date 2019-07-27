@@ -56,18 +56,22 @@ const rules = {
         'main.js': engine.toString() + '\n' + main.toString(),
       },
       {
+        toplevel: true,
         warnings: true,
       }
     );
     if (mainMin.error) throw mainMin.error;
     if (mainMin.warnings) console.warn(mainMin.warnings);
+    console.log('writing standlone/index.html...');
     fs.writeFileSync('standalone/index.html', newIndex);
+    console.log('writing standalone/main.min.js...');
     fs.writeFileSync('standalone/main.min.js', mainMin.code);
+    console.log('zipping standalone/standalone.zip...');
     await _executeAsync(
       'zip -9 standalone/standalone.zip standalone/index.html standalone/main.min.js'
     );
     await _executeAsync(`stat -c '%n %s' standalone/standalone.zip`);
-    await _executeAsync(`stat -c '%n %b' standalone/standalone.zip`);
+    console.log('done');
   },
   'build-css': function(cb) {
     build_css(cb);

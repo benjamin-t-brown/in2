@@ -6,15 +6,16 @@
   "scripts": {
     "start": "npm run build && open-cli http://localhost:8888/index.html --background && npm run server",
     "start:cpp": "npm run build && open-cli http://localhost:8888/index.html --background && npm run server:cpp",
+    "start:standalone": "npm run build:standalone && concurrently \"open-cli http://127.0.0.1:8889/standalone/index.html --background\" \"http-server -p 8889\" ",
     "server": "node src-srv",
     "server:cpp": "node src-srv --cpp",
-    "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --require @babel/register --timeout 99999",
-    "build": "node build.js build-css && webpack --progress && terser --compress --mangle -o dist/main.min.js -- dist/main.js",
     "webpack-server": "webpack-dev-server",
     "watch": "concurrently -n srv,webpack \"npm run server\" \"npm run webpack-server\"",
     "watch:cpp": "concurrently -n srv,webpack \"npm run server:cpp\" \"npm run webpack-server\"",
-    "build-css": "node build.js build-css",
-    "build-standalone": "node build.js build-standalone"
+    "build": "node build.js build-css && webpack --progress && terser --compress --mangle -o dist/main.min.js -- dist/main.js",
+    "build:css": "node build.js build-css",
+    "build:standalone": "node build.js build-standalone",
+    "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --require @babel/register --timeout 99999"
   },
   "repository": {
     "type": "git",
@@ -50,6 +51,7 @@
     ]
   },
   "dependencies": {
+    "http-server": "^0.11.1",
     "jquery": "^3.4.1",
     "minimist": "^1.2.0",
     "open-cli": "^5.0.0",
