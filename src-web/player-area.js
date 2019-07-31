@@ -19,24 +19,23 @@ class PictureArea extends expose.Component {
       });
     };
   }
-
   render() {
     return React.createElement(
       'div',
       {
         style: {
-          width: '100%',
-          height: '100%',
+          width: this.state.pic ? '400px' : '0%',
           backgroundSize: '100% 100%',
           backgroundRepeat: 'no-repeat',
           backgroundImage: this.state.pic ? 'url(' + this.state.pic + ')' : null,
         },
       },
-      React.createElement('canvas', {
-        id: 'canvas_scene',
-        width: '400px',
-        height: '400px',
-      })
+      this.state.pic &&
+        React.createElement('canvas', {
+          id: 'canvas_scene',
+          width: '400px',
+          height: '400px',
+        })
     );
   }
 }
@@ -44,21 +43,21 @@ class PictureArea extends expose.Component {
 module.exports = class PlayerArea extends expose.Component {
   constructor(props) {
     super(props);
-    this.expose('player-area');
-    this.visible = false;
     this.last_index_shown = -1;
 
     this.show = () => {
       this.last_index_shown = -1;
-      this.visible = true;
-      document.getElementById('player-resizer').className = 'player_visible';
+      this.setState({
+        visible: true,
+      });
     };
 
     this.hide = () => {
-      this.visible = false;
       expose.get_state('board').removeAllExtraClasses();
       engine.disable();
-      document.getElementById('player-resizer').className = 'player_invisible';
+      this.setState({
+        visible: false,
+      });
     };
 
     this.add_line = line => {
@@ -99,9 +98,9 @@ module.exports = class PlayerArea extends expose.Component {
             .replace(/require\( .engine.scene. \)/, 'engine.scene()')
             .replace(/console.log\(/g, 'alert(');
           engine.init('canvas_scene', () => {
-            let ctx = document.getElementById('canvas_scene').getContext('2d');
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, 400, 400);
+            // let ctx = document.getElementById('canvas_scene').getContext('2d');
+            // ctx.fillStyle = 'black';
+            // ctx.fillRect(0, 0, 400, 400);
             console.log('Now evaluating...', { file });
             eval(file); //eslint-disable-line no-eval
           });
@@ -144,12 +143,15 @@ module.exports = class PlayerArea extends expose.Component {
     this.state = {
       text: [],
       errors: [],
+      visible: false,
       show: this.show,
       hide: this.hide,
       add_line: this.add_line,
       remove_line: this.remove_line,
       compile: this.compile,
     };
+
+    this.expose('player-area');
   }
 
   componentDidUpdate() {
@@ -169,6 +171,7 @@ module.exports = class PlayerArea extends expose.Component {
     return React.createElement(
       'div',
       {
+        id: 'player-area',
         onMouseDown: ev => {
           if (ev.nativeEvent.which === 1) {
             if (ev.target.id === 'close-player') {
@@ -196,9 +199,11 @@ module.exports = class PlayerArea extends expose.Component {
           width: '100%',
           backgroundColor: css.colors.TEXT_DARK,
           color: css.colors.TEXT_LIGHT,
-          display: 'flex',
+          display: this.state.visible ? 'flex' : 'none',
           justifyContent: 'center',
-          position: 'relative',
+          position: 'fixed',
+          left: 0,
+          top: '50%',
           borderTop: '2px solid ' + css.colors.PRIMARY_ALT,
         },
       },
@@ -225,17 +230,7 @@ module.exports = class PlayerArea extends expose.Component {
           'Close'
         )
       ),
-      React.createElement(
-        'div',
-        {
-          id: 'picture',
-          style: {
-            width: '400px', //'700px', //'360px',
-            height: '400px', //'475px', //'235px',
-          },
-        },
-        React.createElement(PictureArea)
-      ),
+      React.createElement(PictureArea),
       React.createElement(
         'div',
         {

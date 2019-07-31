@@ -602,15 +602,15 @@ class Compiler {
 
   //header for output file (not individual compiled files)
   getHeader() {
-    return `const files = {};\nconst scope = {};`;
+    return `{\nconst files = {};\nconst scope = {};`;
   }
   //footer for entire file (not individual compiled files)
-  getFooter(main_file_name) {
+  getFooter(mainFileName) {
     const ret =
       `files.exit = function(){\n` +
       `    core.exit();\n` +
       `};\n` +
-      `module.exports = { files, scope };\n`;
+      `files['${mainFileName}']();\n}\n`;
     return ret;
   }
 
