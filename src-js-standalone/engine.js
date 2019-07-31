@@ -1,46 +1,34 @@
-class KeyCatcher {
-  constructor() {
-    this.cb = () => {};
-    window.addEventListener('keydown', ev => {
-      if (this.disabled) {
-        return;
-      }
-      this.cb(String.fromCharCode(ev.which));
-    });
-  }
-
-  setK(cb) {
-    this.cb = cb;
-  }
-}
-
 let disableNextSayWait;
 let lastChooseNodeId;
 let lastChooseNodesSelected;
 let lines = [];
-let catcher = new KeyCatcher();
+let isDarkMode = true;
+var bodyStyle, textareaStyle, textStyle, choiceStyle, chosenStyle; //eslint-disable-line
 
-let bodyStyle = {
-  'font-family': 'monospace',
-  margin: '0px',
-  'background-color': '#1D1E19',
-};
-let textareaStyle = {
-  'max-width': '600px',
-  'min-height': '100%',
-  'margin-left': 'auto',
-  'margin-right': 'auto',
-  'background-color': '#303030',
-  padding: '5px',
-};
-let textStyle = {
-  color: '#ABAE81',
-};
-let choiceStyle = {
-  color: '#EFEFEF',
-};
-let chosenStyle = {
-  color: '#BFB',
+const setStyle = () => {
+  bodyStyle = {
+    'font-family': 'monospace',
+    'font-size': '16px',
+    margin: '0px',
+    'background-color': isDarkMode ? '#1D1E19' : '#CCC',
+  };
+  textareaStyle = {
+    'max-width': '600px',
+    'min-height': '100%',
+    'margin-left': 'auto',
+    'margin-right': 'auto',
+    'background-color': isDarkMode ? '#333' : '#EEE',
+    padding: '5px',
+  };
+  textStyle = {
+    color: isDarkMode ? '#BB8' : '#333',
+  };
+  choiceStyle = {
+    color: isDarkMode ? '#EEE' : '#111',
+  };
+  chosenStyle = {
+    color: isDarkMode ? '#BFB' : '#181',
+  };
 };
 
 let stylize = style => {
@@ -51,21 +39,48 @@ let stylize = style => {
   return agg;
 };
 
-let addLine = (text, style) => {
+let render = () => {
   let html = `<div style=${stylize(textareaStyle)}>`;
-  lines.push({
-    t: `${(text || '').replace(/\n/g, '<br/>')}`,
-    s: stylize(style || textStyle),
-  });
   lines.forEach(({ t, s }, i) => {
     if (t.indexOf('Press any key') > -1 && i < lines.length - 1) {
       return;
     }
-    html += `<p style="${s}">${t}</p>`;
+    html += `<p style="${stylize(window[s])}">${t}</p>`;
   });
   document.body.innerHTML = html + '</div>';
   window.scrollTo(0, document.body.scrollHeight);
 };
+
+let addLine = (text, style) => {
+  lines.push({
+    t: `${(text || '').replace(/\n/g, '<br/>')}`,
+    s: style || 'textStyle',
+  });
+  render();
+};
+
+class KeyCatcher {
+  constructor() {
+    this.cb = () => {};
+    window.addEventListener('keydown', ev => {
+      if (this.disabled) {
+        return;
+      }
+      this.cb(String.fromCharCode(ev.which));
+      if (ev.key === 'm') {
+        isDarkMode = !isDarkMode;
+        setStyle();
+        document.body.style = stylize(bodyStyle);
+        render();
+      }
+    });
+  }
+
+  setK(cb) {
+    this.cb = cb;
+  }
+}
+let catcher = new KeyCatcher();
 
 window.Core = class {
   init() {
@@ -88,7 +103,7 @@ window.Core = class {
       if (text.length <= 1) {
         return cb();
       } else {
-        addLine(text, disableNextSayWait && chosenStyle);
+        addLine(text, disableNextSayWait && 'chosenStyle');
       }
     }
 
@@ -111,7 +126,7 @@ window.Core = class {
       addLine(text);
       addLine();
     }
-    addLine(sep, choiceStyle);
+    addLine(sep, 'choiceStyle');
     const actualChoices = choices.filter(choice => {
       if (choice.condition()) {
         return true;
@@ -125,10 +140,10 @@ window.Core = class {
     }
     let ctr = 1;
     actualChoices.forEach(choice => {
-      addLine('<b>  ' + ctr + '.) ' + choice.text + '</b>', choiceStyle);
+      addLine('<b>  ' + ctr + '.) ' + choice.text + '</b>', 'choiceStyle');
       ctr++;
     });
-    addLine(sep, choiceStyle);
+    addLine(sep, 'choiceStyle');
     catcher.setK(key => {
       const choice = actualChoices[key - 1];
       if (choice) {
@@ -196,4 +211,5 @@ window.Player = class {
 
 window.player = new window.Player();
 window.core = new window.Core();
+setStyle();
 document.body.style = stylize(bodyStyle);
