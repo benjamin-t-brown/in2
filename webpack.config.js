@@ -32,6 +32,7 @@ module.exports = {
       '/compile': 'http://localhost:8888',
       '/file': 'http://localhost:8888',
       '/images': 'http://localhost:8888',
+      '/standalone': 'http://localhost:8888',
     },
   },
 };

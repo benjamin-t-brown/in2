@@ -128,11 +128,7 @@ exports.show_context_menu = function(board, elem) {
         this.enterLinkMode(parent);
       }.bind(board);
       cbs.createSwitchConditionalNode = function(parent) {
-        this.addNode(
-          parent,
-          'switch_conditional',
-          'player.get( "has_pizza" ) && \nplayer.get( "has_soda" )'
-        );
+        this.addNode(parent, 'switch_conditional', `player.get('something')`);
       }.bind(board);
     } else {
       cbs.linkNode = function(parent) {
@@ -148,16 +144,16 @@ exports.show_context_menu = function(board, elem) {
         this.addPassFailNode(parent);
       }.bind(board);
       cbs.createActionNode = function(parent) {
-        this.addNode(parent, 'action', `player.addItem( '' )`);
+        this.addNode(parent, 'action', ``);
       }.bind(board);
       cbs.createChunkNode = function(parent) {
-        this.addNode(parent, 'chunk', `#scene.startConversation( '' )`);
+        this.addNode(parent, 'chunk', ``);
       }.bind(board);
       cbs.createSwitchNode = function(parent) {
         this.addSwitchNode(parent);
       }.bind(board);
       cbs.createTriggerNode = function(parent) {
-        this.addNode(parent, 'trigger', `player.get( 'pizza' )`);
+        this.addNode(parent, 'trigger', ``);
       }.bind(board);
       cbs.createNextFileNode = function(parent) {
         dialog.show_input_with_select(

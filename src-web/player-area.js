@@ -90,20 +90,7 @@ module.exports = class PlayerArea extends expose.Component {
       var _on_compile = resp => {
         console.log('RESP', resp);
         if (resp.data.success) {
-          this.add_line('Success!');
-          this.add_line('');
-          var file = resp.data.file
-            .replace(/require\( .engine.core. \)/, 'engine.core()')
-            .replace(/require\( .engine.player. \)/, 'engine.player()')
-            .replace(/require\( .engine.scene. \)/, 'engine.scene()')
-            .replace(/console.log\(/g, 'alert(');
-          engine.init('canvas_scene', () => {
-            // let ctx = document.getElementById('canvas_scene').getContext('2d');
-            // ctx.fillStyle = 'black';
-            // ctx.fillRect(0, 0, 400, 400);
-            console.log('Now evaluating...', { file });
-            eval(file); //eslint-disable-line no-eval
-          });
+          engine.runFile(resp.data.file);
         } else {
           this.add_line('Failure!');
           this.setState({

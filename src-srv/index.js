@@ -8,6 +8,18 @@ const SAVE_DIR = __dirname + '/../save/';
 const COMPILER_DIR = __dirname + '/../src-compile/';
 const COMPILER_OUT = __dirname + '/../src-compile/out';
 
+let config;
+try {
+  config = JSON.parse(fs.readFileSync(__dirname + '/../config.json').toString());
+} catch (e) {
+  console.log(
+    '[WARN] Using config.template.js instead of config.js.  Copy and replace with your configs.'
+  );
+  config = JSON.parse(fs.readFileSync(__dirname + '/../config.template.json').toString());
+}
+
+console.log('[CONFIG]', config);
+
 let compiler = 'compiler.js';
 let extension = 'js';
 
@@ -176,6 +188,27 @@ http_server.get('file', (obj, resp) => {
         return true;
       });
       http_server.reply(resp, ret);
+    });
+  }
+});
+
+http_server.get('standalone', (obj, resp) => {
+  try {
+    let standalone = fs
+      .readFileSync(__dirname + '/../' + config.standaloneEnginePath)
+      .toString();
+    for (let i = 0; i < config.additionalPaths.length; i++) {
+      standalone +=
+        '\n' + fs.readFileSync(__dirname + '/../' + config.additionalPaths[i]).toString();
+    }
+    http_server.reply(resp, {
+      err: null,
+      data: standalone,
+    });
+  } catch (e) {
+    console.log('ERROR?', e);
+    http_server.reply(resp, {
+      err: e,
     });
   }
 });

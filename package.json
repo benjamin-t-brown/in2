@@ -17,6 +17,8 @@
     "build:css": "node build.js build-css",
     "build:standalone": "node build.js build-standalone",
     "build:compiled": "node src-compile/compiler.js",
+    "copy-save": "zip -9 save/save.zip save/*",
+    "uncopy-save": "unzip save/save.zip",
     "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --require @babel/register --timeout 99999"
   },
   "repository": {

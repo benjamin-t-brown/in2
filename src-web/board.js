@@ -10,6 +10,14 @@ const jsPlumb = window.jsPlumb;
 
 const BOARD_SIZE_PIXELS = 6400;
 
+const getNodeId = () => {
+  let id = utils.random_id(6);
+  while (window.id) {
+    id = utils.random_id(6);
+  }
+  return id;
+};
+
 window.on_node_click = function(elem) {
   console.log('Click Event Not Overwritten!', elem);
 };
@@ -296,7 +304,7 @@ class Board extends expose.Component {
       const nodes = this.dragSet.map(id => {
         const node = this.getNode(id);
         const new_node = Object.assign({}, node);
-        new_node.id = utils.random_id(10);
+        new_node.id = getNodeId();
         node_mapping[node.id] = new_node.id;
         return new_node;
       });
@@ -321,7 +329,7 @@ class Board extends expose.Component {
 
         const newLinks = JSON.parse(JSON.stringify(this.copySet.links));
         const newNodes = this.copySet.nodes.map((node, i) => {
-          const newId = utils.random_id(10);
+          const newId = getNodeId();
           const newNode = Object.assign({}, node);
           newLinks.forEach(link => {
             if (link.to === node.id) {
@@ -600,7 +608,7 @@ class Board extends expose.Component {
   }
 
   addNode(parent, type, defaultText) {
-    let id = utils.random_id(10);
+    let id = getNodeId();
     let parentElem = document.getElementById(parent.id);
     let rect = parentElem.getBoundingClientRect();
     let node = {
@@ -623,7 +631,7 @@ class Board extends expose.Component {
 
   addSwitchNode(parent) {
     let node = this.addNode(parent, 'switch', 'switch');
-    let id_default = utils.random_id(10);
+    let id_default = getNodeId();
     let parent_elem = document.getElementById(parent.id);
     let rect = parent_elem.getBoundingClientRect();
     let node_default = {
@@ -645,8 +653,8 @@ class Board extends expose.Component {
 
   addPassFailNode(parent) {
     let node = this.addNode(parent, 'pass_fail', 'Math.random() > 0.5 ? true : false;');
-    let idPass = utils.random_id(10);
-    let idFail = utils.random_id(10);
+    let idPass = getNodeId();
+    let idFail = getNodeId();
     let parentElem = document.getElementById(parent.id);
     let rect = parentElem.getBoundingClientRect();
     let nodePass = {

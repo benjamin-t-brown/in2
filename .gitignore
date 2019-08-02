@@ -11,6 +11,8 @@ dist/main.min.js
 save/*.json
 save/icomic1/
 standalone/index.html
+standalone/main.concat.js
 standalone/main.min.js
 standalone/standalone.zip
 src-js-standalone/main.js
+src-srv/config.js

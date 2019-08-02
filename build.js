@@ -51,9 +51,11 @@ const rules = {
       .join('\n')
       .replace(/[\n]{2,}/g, '\n');
 
+    const concat = engine.toString() + '\ninit();\n' + main.toString();
+
     const mainMin = Terser.minify(
       {
-        'main.js': engine.toString() + '\n' + main.toString(),
+        'main.js': concat,
       },
       {
         toplevel: true,
@@ -62,16 +64,21 @@ const rules = {
     );
     if (mainMin.error) throw mainMin.error;
     if (mainMin.warnings) console.warn(mainMin.warnings);
+
+    console.log('writing standalone/main.concat.js');
+    fs.writeFileSync('standalone/main.concat.js', concat);
     console.log('writing standlone/index.html...');
     fs.writeFileSync('standalone/index.html', newIndex);
     console.log('writing standalone/main.min.js...');
     fs.writeFileSync('standalone/main.min.js', mainMin.code);
     console.log('zipping standalone/standalone.zip...');
     await _executeAsync(
-      'zip -9 standalone/standalone.zip standalone/index.html standalone/main.min.js'
+      //'zip -9 standalone/standalone.zip standalone/index.html standalone/main.min.js'
+      'advzip -4 -a standalone/standalone.zip standalone/index.html standalone/main.min.js'
     );
     await _executeAsync(`stat -c '%n %s' standalone/standalone.zip`);
     console.log('done');
+    cb();
   },
   'build-css': function(cb) {
     build_css(cb);

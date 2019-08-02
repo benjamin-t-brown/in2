@@ -148,39 +148,51 @@ module.exports = {
   is_ctrl() {
     return ctrl;
   },
-  get: function(url, cb) {
+  get: async function(url, cb) {
     var opts = {
       method: 'GET',
       headers: {},
     };
     var initial_time = +new Date();
-    fetch(url, opts)
-      .then(function(response) {
-        response.json().then(function(d) {
-          if (d.err) {
-            console.error('Internal Server Error', d.err, url);
-          } else {
-            cb(d, +new Date() - initial_time);
-          }
+    if (cb) {
+      return fetch(url, opts)
+        .then(function(response) {
+          response.json().then(function(d) {
+            if (d.err) {
+              console.error('Internal Server Error', d.err, url);
+            } else {
+              if (cb) {
+                cb(d, +new Date() - initial_time);
+              } else {
+                return d;
+              }
+            }
+          });
+        })
+        .catch(err => {
+          console.error('Fetch GET Error', err, url);
         });
-      })
-      .catch(err => {
-        console.error('Fetch GET Error', err, url);
-      });
+    } else {
+      return fetch(url, opts).then(response => response.json());
+    }
   },
-  del: function(url, cb) {
+  del: async function(url, cb) {
     var opts = {
       method: 'DELETE',
       headers: {},
     };
     var initial_time = +new Date();
-    fetch(url, opts)
+    return fetch(url, opts)
       .then(function(response) {
         response.json().then(function(d) {
           if (d.err) {
             console.error('Internal Server Error', d.err, url);
           } else {
-            cb(d, +new Date() - initial_time);
+            if (cb) {
+              cb(d, +new Date() - initial_time);
+            } else {
+              return d;
+            }
           }
         });
       })
@@ -188,20 +200,24 @@ module.exports = {
         console.error('Fetch DEL Error', err, url);
       });
   },
-  post: function(url, data, cb) {
+  post: async function(url, data, cb) {
     var opts = {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {},
     };
     var initial_time = +new Date();
-    fetch(url, opts)
+    return fetch(url, opts)
       .then(function(response) {
         response.json().then(function(d) {
           if (d.err) {
             console.error('Internal Server Error', d.err, url);
           } else {
-            cb(d, +new Date() - initial_time);
+            if (cb) {
+              cb(d, +new Date() - initial_time);
+            } else {
+              return d;
+            }
           }
         });
       })

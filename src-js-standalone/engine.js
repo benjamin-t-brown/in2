@@ -221,6 +221,8 @@ let createMapNode = (x, y) => {
     y,
     name: '',
     adj: {},
+    //visited
+    //zone
   };
 };
 
@@ -286,6 +288,9 @@ var engine = {
       }
     }
   },
+  getEvent() {
+    return '';
+  },
 };
 
 // debug
@@ -340,8 +345,10 @@ var debug = {
 };
 
 // init
-console.log('init');
-setStyle();
-document.body.style = stylize(bodyStyle);
-engine.init();
-debug.showMap();
+var init = () => { //eslint-disable-line
+  console.log('init');
+  setStyle();
+  document.body.style = stylize(bodyStyle);
+  engine.init();
+  debug.showMap();
+};

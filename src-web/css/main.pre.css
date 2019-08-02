@@ -179,7 +179,7 @@ body {
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.PRIMARY;
-  width: 400px;
+  max-width: 400px;
   color: $css.colors.TEXT_LIGHT;
   white-space: pre;
 }
@@ -215,7 +215,7 @@ body {
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.PRIMARY;
-  width: 300px;
+  max-width: 300px;
   color: $css.colors.TEXT_LIGHT;
 }
 .item-switch_conditional:hover {

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const prettier = require('prettier');
 
 //This program can compile compatible json files into IN2 *.compiled.js files.
 //Usage:
@@ -12,12 +13,25 @@ const fs = require('fs');
 
 const CURRENT_NODE_VAR = 'curIN2n';
 const CURRENT_FILE_VAR = 'curIN2f';
+const LAST_FILE_VAR = 'lasIN2f';
 let includeDebugStatements = true;
 
-const createMockedEngine = function() {
-  return '';
-};
-/*eslint-disable-line no-eval*/ eval(createMockedEngine());
+let config;
+try {
+  config = JSON.parse(fs.readFileSync(__dirname + '/../config.json').toString());
+} catch (e) {
+  console.log(
+    '[WARN] Using config.template.js instead of config.js.  Copy and replace with your configs.'
+  );
+  config = JSON.parse(fs.readFileSync(__dirname + '/../config.template.json').toString());
+}
+let standalone = fs
+  .readFileSync(__dirname + '/../' + config.standaloneEnginePath)
+  .toString();
+for (let i = 0; i < config.additionalPaths.length; i++) {
+  standalone +=
+    '\n' + fs.readFileSync(__dirname + '/../' + config.additionalPaths[i]).toString();
+}
 
 class File {
   constructor(json) {
@@ -73,12 +87,46 @@ class File {
   }
 }
 
-function _create_action_node(content, id, child_id) {
+function _eval_content(content, params) {
+  params = params || {};
+  function evalInContext(js, context) {
+    return function() {
+      return eval(js); //eslint-disable-line no-eval
+    }.call(context);
+  }
+
+  const { quote } = params;
+  if (quote) {
+    content = `\`${content}\``;
+  }
+
+  const prefix = `
+  let window = global;
+  window.addEventListener = () => {};
+  `;
+
+  const postfix = `
+  player = {...player};
+  core = {...core, ...{
+    say: () => {},
+    choose: () => {},
+    exit: () => {},
+  }};
+  `;
+
+  const evalStr = `{${prefix}\n${standalone}\n${postfix}\n${content}\n}`;
   try {
-    /*eslint-disable-line no-eval*/ eval(`\{content}`);
+    evalInContext(evalStr, {});
   } catch (e) {
     console.log('COULD NOT EVAL', content, e.stack);
     return 'error' + e;
+  }
+}
+
+function _create_action_node(content, id, child_id) {
+  let evaluationFailure = _eval_content(content);
+  if (evaluationFailure) {
+    return evaluationFailure;
   }
   const ret =
     `// ACTION\n` +
@@ -90,19 +138,15 @@ function _create_action_node(content, id, child_id) {
 }
 
 function _create_text_node(content, id, child_id) {
-  try {
-    eval(`\`${content}\``); //eslint-disable-line no-eval
-  } catch (e) {
-    return 'error' + e;
-  }
-  if (content.length === 0) {
-    content = 'LOL THIS HAS NO CONTENT';
+  let evaluationFailure = _eval_content(`\`${content}\``);
+  if (evaluationFailure) {
+    return evaluationFailure;
   }
   const ret =
     `// TEXT\n` +
     `scope.${id} = () => {\n` +
     `    player.set( '${CURRENT_NODE_VAR}', '${id}' );\n` +
-    `    const text = \`${content}\`;\n` +
+    `    let text = \`${content}\`;\n` +
     `    core.say( text, scope.${child_id} );\n` +
     `};\n`;
   return ret;
@@ -184,7 +228,10 @@ class Compiler {
           return null;
         }
         try {
-          eval(`\`${node.content}\``); //eslint-disable-line no-eval
+          let evaluationFailure = _eval_content(`\`${node.content}\``);
+          if (evaluationFailure) {
+            return evaluationFailure;
+          }
         } catch (e) {
           this.error(
             file.name,
@@ -199,7 +246,7 @@ class Compiler {
           `// ${node.type}\n` +
           `scope.${node.id} = () => {\n` +
           `    player.set( '${CURRENT_NODE_VAR}', '${node.id}' );\n` +
-          `    const text = \`${node.content}\`;\n` +
+          `    let text = \`${node.content}\`;\n` +
           `    core.choose( text, '${node.id}', [` +
           ``;
         const nodes_to_compile = [];
@@ -228,11 +275,14 @@ class Compiler {
             return null;
           }
           try {
-            eval(`\`${text_child.content}\``); //eslint-disable-line no-eval
+            let evaluationFailure = _eval_content(text_child.content, { quote: true });
+            if (evaluationFailure) {
+              throw new Error(evaluationFailure.slice(5));
+            }
           } catch (e) {
             this.error(
               file.name,
-              node.id,
+              text_child.id,
               'Choice Text node content could not be evaluated. ' +
                 e +
                 `\n CONTENT ${node.content}`
@@ -250,7 +300,10 @@ class Compiler {
             `    },`;
           if (condition_child) {
             try {
-              eval(condition_child.content); //eslint-disable-line no-eval
+              let evaluationFailure = _eval_content(condition_child.content);
+              if (evaluationFailure) {
+                throw new Error(evaluationFailure.slice(5));
+              }
             } catch (e) {
               this.error(
                 file.name,
@@ -365,7 +418,10 @@ class Compiler {
           `    const condition = ( () => { return ${node.content} } )();\n` +
           ``;
         try {
-          eval(node.content); //eslint-disable-line no-eval
+          let evaluationFailure = _eval_content(node.content);
+          if (evaluationFailure) {
+            throw new Error(evaluationFailure.slice(5));
+          }
         } catch (e) {
           this.error(
             file.name,
@@ -399,14 +455,14 @@ class Compiler {
             ret +=
               `    if( condition ){\n` +
               `        player.set( '${CURRENT_NODE_VAR}', '${child.id}' );\n` +
-              `        const text = \`${child.content}\`;\n` +
+              `        let text = \`${child.content}\`;\n` +
               `        core.say( text, scope.${child2.id} );\n` +
               `    }\n`;
           } else if (child.type === 'fail_text') {
             ret +=
               `    if( !condition ){\n` +
               `        player.set( '${CURRENT_NODE_VAR}', '${child.id}' );\n` +
-              `        const text = \`${child.content}\`;\n` +
+              `        let text = \`${child.content}\`;\n` +
               `        core.say( text, scope.${child2.id} );\n` +
               `    }\n`;
           }
@@ -589,9 +645,10 @@ class Compiler {
         this.files_to_verify.push(node.content);
         let ret =
           `// ${node.type}\n` +
-          `scope.${node.id} = function(){\n` +
-          `    const key = \`${node.content}\`;\n` +
-          `    const func = files[ key ];\n` +
+          `scope.${node.id} = () => {\n` +
+          `    player.set("${LAST_FILE_VAR}", player.get("${CURRENT_FILE_VAR}"));` +
+          `    let key = \`${node.content}\`;\n` +
+          `    let func = files[ key ];\n` +
           `    if( func ) {\n` +
           `        func();\n}`;
         if (includeDebugStatements) {
@@ -609,7 +666,11 @@ class Compiler {
 
   //header for output file (not individual compiled files)
   getHeader() {
-    return `{\nconst files = {};\nconst scope = {};`;
+    return `/**
+    * Main Logic File
+    *
+    * This file has been generated by an in2 compiler.
+    */\n{\n/* global player, core, engine */\nconst files = {};\nconst scope = {};`;
   }
   //footer for entire file (not individual compiled files)
   getFooter(mainFileName) {
@@ -735,7 +796,10 @@ const compile = function(inputFiles, outputUrls) {
             console.log(' ' + failed_files[j]);
           }
         }
-        aggregatedResult = aggregatedResult + c.getFooter(mainFileName);
+        aggregatedResult = prettier.format(aggregatedResult + c.getFooter(mainFileName), {
+          semi: true,
+          parser: 'babel',
+        });
         console.log();
         outputUrls.forEach(outputUrl => {
           output_result(aggregatedResult, outputUrl);
