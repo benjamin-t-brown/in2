@@ -17,6 +17,7 @@ let setStyle = () => {
   };
   textareaStyle = {
     'max-width': '600px',
+    'min-width': '600px',
     'min-height': '100%',
     'margin-left': 'auto',
     'margin-right': 'auto',
@@ -57,7 +58,7 @@ let render = () => {
     html += `<p style="${stylize(window[s])}">${t}</p>`;
   });
   window.root.innerHTML = html + '</div>';
-  window.scrollTo(0, document.body.scrollHeight);
+  window.root.scrollTop = window.root.scrollHeight;
 };
 
 let addLine = (text, style) => {
@@ -236,6 +237,7 @@ var engine = {
     engine.zoneMaze(map);
   },
   generateMaze() {
+    // uses the binary-tree method of generating a maze
     let map = [];
     for (let i = 0; i < mapHeight; i++) {
       for (let j = 0; j < mapWidth; j++) {
@@ -265,7 +267,7 @@ var engine = {
     return map;
   },
   zoneMaze(map) {
-    let zones = ['main', 'storage', 'flight', 'engineering', 'dorms'];
+    let zones = ['main', 'dorms', 'engineering', 'labs', 'flight'];
     let zoneIndex = 0;
     let startingNode = map[Math.floor(Math.random() * map.length)];
     startingNode.visited = true;
@@ -284,6 +286,27 @@ var engine = {
         if (!adjNode.visited) {
           adjNode.visited = true;
           unvisitedList.unshift(adjNode);
+        }
+      }
+    }
+
+    // remove orphaned zones
+    for (let i = 0; i < mapWidth; i++) {
+      for (let j = 0; j < mapHeight; j++) {
+        let node = getMapNodeAt(map, j, i);
+        let hasConsecutive = false;
+        let nearbyZone = node.zone;
+        for (let k in node.adj) {
+          let node2 = node.adj[k];
+          nearbyZone = node2.zone;
+          if (node2.zone === node.zone) {
+            hasConsecutive = true;
+            break;
+          }
+        }
+
+        if (!hasConsecutive) {
+          node.zone = nearbyZone;
         }
       }
     }
@@ -306,6 +329,8 @@ var debug = {
           'background-color': 'gray',
           width: '90px',
           height: '90px',
+          'text-align': 'center',
+          'font-size': '12px',
           'border-top': '2px solid black',
           'border-bottom': '2px solid black',
           'border-left': '2px solid black',
@@ -314,10 +339,10 @@ var debug = {
         if (node.zone === 'main') {
           styles['background-color'] = 'purple';
         } else if (node.zone === 'flight') {
-          styles['background-color'] = 'blue';
+          styles['background-color'] = 'cyan';
         } else if (node.zone === 'engineering') {
           styles['background-color'] = 'orange';
-        } else if (node.zone === 'storage') {
+        } else if (node.zone === 'labs') {
           styles['background-color'] = 'brown';
         } else if (node.zone === 'dorms') {
           styles['background-color'] = 'green';
