@@ -54,8 +54,8 @@ class Core {
   centerAtActiveNode() {
     const board = expose.get_state('board');
     board.removeAllExtraClasses();
-    const active_node_id = exports.player().get('current_in2_node');
-    const active_file_name = exports.player().get('current_in2_file');
+    const active_node_id = exports.player().get('curIN2n');
+    const active_file_name = exports.player().get('curIN2f');
     if (active_node_id) {
       expose.get_state('file-browser').loadFileExternal(active_file_name, () => {
         const elem = document.getElementById(active_node_id);

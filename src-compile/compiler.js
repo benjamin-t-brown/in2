@@ -2,13 +2,22 @@ const fs = require('fs');
 
 //This program can compile compatible json files into IN2 *.compiled.js files.
 //Usage:
-//  Compile all files within the ${ProjectDir}/save directory into ${ProjectDir}/src-compile/main.compiled.js
+//  Compile all files within the ${ProjectDir}/save dirsectory into ${ProjectDir}/src-compile/main.compiled.js
 //    node compiler.js
 //  Compile file <filename> within the ${ProjectDir}/save directory into ${ProjectDir}/src-compile/out/<filename>.compiled.js
 //    node compiler.js --file <filename>
 
 //node types:
 // root, text, choice, choice_text, choice_conditional, pass_fail, pass_text, fail_text, next_file, action, picture
+
+const CURRENT_NODE_VAR = 'curIN2n';
+const CURRENT_FILE_VAR = 'curIN2f';
+let includeDebugStatements = true;
+
+const createMockedEngine = function() {
+  return '';
+};
+/*eslint-disable-line no-eval*/ eval(createMockedEngine());
 
 class File {
   constructor(json) {
@@ -66,16 +75,14 @@ class File {
 
 function _create_action_node(content, id, child_id) {
   try {
-    /*eslint-disable-line no-eval*/ eval(
-      `var core = requrre('engine/core'); var player = require('engine/player'); ${content}`
-    );
+    /*eslint-disable-line no-eval*/ eval(`\{content}`);
   } catch (e) {
     console.log('COULD NOT EVAL', content, e.stack);
     return 'error' + e;
   }
   const ret =
     `// ACTION\n` +
-    `scope.${id} = function(){\n` +
+    `scope.${id} = () => {\n` +
     `    ${content};\n` +
     `    scope.${child_id}();\n` +
     `};\n`;
@@ -93,8 +100,8 @@ function _create_text_node(content, id, child_id) {
   }
   const ret =
     `// TEXT\n` +
-    `scope.${id} = function(){\n` +
-    `    player.set( 'current_in2_node', '${id}' );\n` +
+    `scope.${id} = () => {\n` +
+    `    player.set( '${CURRENT_NODE_VAR}', '${id}' );\n` +
     `    const text = \`${content}\`;\n` +
     `    core.say( text, scope.${child_id} );\n` +
     `};\n`;
@@ -126,8 +133,8 @@ class Compiler {
             `    scope[ id ]();\n` +
             `}\n`;
           return (
-            `files[ \`${file.name}\` ] = function( id ){\n` +
-            `player.set( 'current_in2_file', '${file.name}' );\n` +
+            `files[ \`${file.name}\` ] = (id) => {\n` +
+            `player.set( '${CURRENT_FILE_VAR}', '${file.name}' );\n` +
             this.compileNode(child, file) +
             ret +
             `};\n`
@@ -190,8 +197,8 @@ class Compiler {
         }
         let ret =
           `// ${node.type}\n` +
-          `scope.${node.id} = function(){\n` +
-          `    player.set( 'current_in2_node', '${node.id}' );\n` +
+          `scope.${node.id} = () => {\n` +
+          `    player.set( '${CURRENT_NODE_VAR}', '${node.id}' );\n` +
           `    const text = \`${node.content}\`;\n` +
           `    core.choose( text, '${node.id}', [` +
           ``;
@@ -286,7 +293,7 @@ class Compiler {
         }
         const nodes_to_compile = [];
         let ret = `//${node.type}\n`;
-        ret += `scope.${node.id} = function(){\n`;
+        ret += `scope.${node.id} = () => {\n`;
         for (let i in children) {
           const child = children[i];
           if (child.type !== 'switch_conditional' && child.type !== 'switch_default') {
@@ -353,9 +360,9 @@ class Compiler {
         }
         let ret =
           `// ${node.type}\n` +
-          `scope.${node.id} = function(){\n` +
-          `    player.set( 'current_in2_node', '${node.id}' );\n` +
-          `    const condition = ( function(){ return ${node.content} } )();\n` +
+          `scope.${node.id} = () => {\n` +
+          `    player.set( '${CURRENT_NODE_VAR}', '${node.id}' );\n` +
+          `    const condition = ( () => { return ${node.content} } )();\n` +
           ``;
         try {
           eval(node.content); //eslint-disable-line no-eval
@@ -391,14 +398,14 @@ class Compiler {
           if (child.type === 'pass_text') {
             ret +=
               `    if( condition ){\n` +
-              `        player.set( 'current_in2_node', '${child.id}' );\n` +
+              `        player.set( '${CURRENT_NODE_VAR}', '${child.id}' );\n` +
               `        const text = \`${child.content}\`;\n` +
               `        core.say( text, scope.${child2.id} );\n` +
               `    }\n`;
           } else if (child.type === 'fail_text') {
             ret +=
               `    if( !condition ){\n` +
-              `        player.set( 'current_in2_node', '${child.id}' );\n` +
+              `        player.set( '${CURRENT_NODE_VAR}', '${child.id}' );\n` +
               `        const text = \`${child.content}\`;\n` +
               `        core.say( text, scope.${child2.id} );\n` +
               `    }\n`;
@@ -464,7 +471,7 @@ class Compiler {
           const child = children[0];
           const ret =
             `// ${node.type}\n` +
-            `scope.${node.id} = function(){\n` +
+            `scope.${node.id} = () => {\n` +
             `    core.picture( \`${node.content}\` );\n` +
             `    scope.${child.id}();\n` +
             `};\n`;
@@ -495,12 +502,9 @@ class Compiler {
             const id = node.id + '_' + i;
             const child_id = node.id + '_' + (i + 1);
             let local_node;
-            //console.log( 'PARSE CHUNK NODE: ' + content.slice( 0, 20 ) );
             if (content[0] === '#' || content.length === 0) {
-              //console.log( ' action' );
               local_node = _create_action_node(content.slice(1), id, child_id);
             } else {
-              //console.log( ' text' );
               local_node = _create_text_node(content, id, child_id);
             }
 
@@ -526,12 +530,12 @@ class Compiler {
           const child = children[0];
           const first_ret =
             `// ${node.type} FIRST\n` +
-            `scope.${node.id} = function(){\n` +
+            `scope.${node.id} = () => {\n` +
             `    scope.${node.id + '_0'}();\n` +
             `};\n`;
           const last_ret =
             `// ${node.type} LAST\n` +
-            `scope.${node.id + '_' + node_list.length} = function(){\n` +
+            `scope.${node.id + '_' + node_list.length} = () => {\n` +
             `    scope.${child.id}();\n` +
             `};\n`;
           return (
@@ -583,17 +587,20 @@ class Compiler {
       },
       next_file: node => {
         this.files_to_verify.push(node.content);
-        const ret =
+        let ret =
           `// ${node.type}\n` +
           `scope.${node.id} = function(){\n` +
           `    const key = \`${node.content}\`;\n` +
           `    const func = files[ key ];\n` +
           `    if( func ) {\n` +
-          `        func();\n` +
-          `    } else {\n` +
-          '        core.say( `EXECUTION WARNING, no file exists named ${key}. You are probably running a subset of all the files, and not the whole scenario. ` + Object.keys(files), files.exit );\n' + //eslint-disable-line
-          `    }\n` +
-          `};\n`;
+          `        func();\n}`;
+        if (includeDebugStatements) {
+          ret +=
+            `    else {\n` +
+            '        core.say( `EXECUTION WARNING, no file exists named ${key}. You are probably running a subset of all the files, and not the whole scenario. ` + Object.keys(files), files.exit );\n' + //eslint-disable-line
+            `    }\n`;
+        }
+        ret += `};\n`;
         return ret;
       },
     };
