@@ -14,5 +14,6 @@ standalone/index.html
 standalone/main.concat.js
 standalone/main.min.js
 standalone/standalone.zip
+standalone/standalone.adv.zip
 src-js-standalone/main.js
 src-srv/config.js
