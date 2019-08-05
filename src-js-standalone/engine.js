@@ -1,216 +1,15 @@
 /**
- * Main Engine File.
+ * AUX Engine File.
  *
  * Any "var" in this file is on purpose hoisted into window/global
  */
 
-// Style ------
-let isDarkMode = true;
-var bodyStyle, textareaStyle, textStyle, choiceStyle, chosenStyle; //eslint-disable-line
+/* global player, core */
 
-let setStyle = () => {
-  bodyStyle = {
-    'font-family': 'monospace',
-    'font-size': '16px',
-    margin: '0px',
-    'background-color': isDarkMode ? '#1D1E19' : '#CCC',
-  };
-  textareaStyle = {
-    'max-width': '600px',
-    'min-width': '600px',
-    'min-height': '100%',
-    'margin-left': 'auto',
-    'margin-right': 'auto',
-    'background-color': isDarkMode ? '#333' : '#EEE',
-    padding: '5px',
-  };
-  textStyle = {
-    color: isDarkMode ? '#BB8' : '#333',
-  };
-  choiceStyle = {
-    color: isDarkMode ? '#EEE' : '#111',
-  };
-  chosenStyle = {
-    color: isDarkMode ? '#BFB' : '#181',
-  };
-};
-
-let stylize = style => {
-  let agg = '';
-  for (let i in style) {
-    agg += i + ':' + style[i] + ';';
-  }
-  return agg;
-};
-
-// Core/Player ------
-let disableNextSayWait;
-let lastChooseNodeId;
-let lastChooseNodesSelected;
-let lines = [];
-
-let render = () => {
-  let html = `<div style=${stylize(textareaStyle)}>`;
-  lines.forEach(({ t, s }, i) => {
-    if (t.indexOf('Press any key') > -1 && i < lines.length - 1) {
-      return;
-    }
-    html += `<p style="${stylize(window[s])}">${t}</p>`;
-  });
-  window.root.innerHTML = html + '</div>';
-  window.root.scrollTop = window.root.scrollHeight;
-};
-
-let addLine = (text, style) => {
-  lines.push({
-    t: `${(text || '').replace(/\n/g, '<br/>')}`,
-    s: style || 'textStyle',
-  });
-  render();
-};
-
-let catcher = new (function() {
-  let cb = () => {};
-  this.setK = _cb => (cb = _cb);
-  window.addEventListener('keydown', ev => {
-    if (this.disabled) {
-      return;
-    }
-    cb(String.fromCharCode(ev.which));
-    if (ev.key === 'm') {
-      isDarkMode = !isDarkMode;
-      setStyle();
-      document.body.style = stylize(bodyStyle);
-      render();
-    }
-  });
-})();
-
-var core = /*eslint-disable-line*/ {
-  init() {
-    disableNextSayWait = false;
-    lastChooseNodeId = null;
-    lastChooseNodesSelected = [];
-  },
-
-  say(text, cb) {
-    if (typeof text === 'object') {
-      if (text.length === 1) {
-        addLine(text);
-      } else {
-        exports.say(text[0], () => {
-          exports.say(text.slice(1), cb);
-        });
-        return;
-      }
-    } else {
-      if (text.length <= 1) {
-        return cb();
-      } else {
-        addLine(text, disableNextSayWait && 'chosenStyle');
-      }
-    }
-
-    if (disableNextSayWait) {
-      setTimeout(() => {
-        cb();
-      }, 1);
-      return;
-    }
-    addLine();
-    addLine('&nbsp&nbsp&nbsp&nbsp&nbspPress any key to continue...');
-    catcher.setK(() => {
-      cb();
-    });
-  },
-  choose(text, nodeId, choices) {
-    const sep = '----------';
-    if (text) {
-      addLine(text);
-      addLine();
-    }
-    addLine(sep, 'choiceStyle');
-    const actualChoices = choices.filter(choice => {
-      if (choice.condition()) {
-        return true;
-      } else {
-        return false;
-      }
-    });
-    if (lastChooseNodeId !== nodeId) {
-      lastChooseNodeId = nodeId;
-      lastChooseNodesSelected = [];
-    }
-    let ctr = 1;
-    actualChoices.forEach(choice => {
-      addLine('<b>  ' + ctr + '.) ' + choice.text + '</b>', 'choiceStyle');
-      ctr++;
-    });
-    addLine(sep, 'choiceStyle');
-    catcher.setK(key => {
-      const choice = actualChoices[key - 1];
-      if (choice) {
-        lastChooseNodesSelected.push(choice.text);
-        catcher.setK(() => {});
-        disableNextSayWait = true;
-        choice.cb();
-        addLine();
-        disableNextSayWait = false;
-      }
-    });
-  },
-};
-
-var player = /*eslint-disable-line*/ {
-  state: {},
-  get(path) {
-    let _helper = (paths, obj) => {
-      let k = paths.shift();
-      if (!paths.length) {
-        return obj[k] === undefined ? null : obj[k];
-      }
-
-      let nextObj = obj[k];
-      if (nextObj !== undefined) {
-        return _helper(paths, nextObj);
-      } else {
-        return null;
-      }
-    };
-
-    return _helper(path.split('.'), this.state);
-  },
-  set(path, val) {
-    val = val === undefined ? true : val;
-    let _helper = (keys, obj) => {
-      let k = keys.shift();
-      if (k === undefined) {
-        return;
-      }
-      if (!keys.length) {
-        obj[k] = val;
-        return;
-      }
-
-      if (!obj[k]) {
-        obj[k] = {};
-      }
-      _helper(keys, obj[k]);
-    };
-
-    _helper(path.split('.'), this.state);
-  },
-  setIfUnset(path, val) {
-    if (this.get(path) === null) {
-      this.set(path, val);
-    }
-  },
-};
-
-// Engine ------
 let map = [];
 let mapWidth = 6;
 let mapHeight = 6;
+let playerLocation = { x: 0, y: 0 };
 
 let pctChance = pct => {
   return pct / 100 > Math.random();
@@ -221,14 +20,26 @@ let createMapNode = (x, y) => {
     x,
     y,
     name: '',
-    adj: {},
+    adj: {
+      //n, s, e, w
+    },
     //visited
     //zone
   };
 };
 
 let getMapNodeAt = (map, x, y) => {
-  return map[y * mapWidth + x];
+  return map[y * mapWidth + x] || {};
+};
+
+let getMapConnectedNode = (map, { x, y }, dir) => {
+  let node = getMapNodeAt(map, x, y);
+  console.log('GET NODE LOCATION', node, x, y, dir);
+  if (node.adj) {
+    return node.adj[dir] || null;
+  } else {
+    return null;
+  }
 };
 
 var engine = {
@@ -242,6 +53,7 @@ var engine = {
     for (let i = 0; i < mapHeight; i++) {
       for (let j = 0; j < mapWidth; j++) {
         let node = createMapNode(j, i);
+        node.name = 'crew-cafeteria';
         let adj = node.adj;
         if (i === 0 && j === 0) {
           map.push(node);
@@ -311,13 +123,30 @@ var engine = {
       }
     }
   },
+  async showRoomChoices() {
+    let choices = ['north', 'south', 'east', 'west'].reduce((arr, dir) => {
+      let connected = getMapConnectedNode(map, playerLocation, dir.slice(0, 1));
+      if (connected) {
+        arr.push({
+          text: `Go through the ${dir} door.`,
+          cb: () => {
+            player.set('nextFile', connected.name);
+          },
+          condition: () => true,
+        });
+      }
+      return arr;
+    }, []);
+
+    await core.choose('Now what?', 'showRoomChoices', choices);
+  },
   getEvent() {
     return '';
   },
 };
 
 // debug
-var debug = {
+var debug = /*eslint-disable-line */ {
   showMap() {
     console.log('show map', map);
     let html = `<div style="margin:10px">`;
@@ -360,20 +189,11 @@ var debug = {
         if (node.adj.w) {
           styles['border-right'] = `2px solid ${styles['background-color']}`;
         }
-        html += `<div style="${stylize(styles)}">${node.zone}</div>`;
+        html += `<div style="${window.stylize(styles)}">${node.zone}</div>`;
       }
       html += '</div>';
     }
     html += '</div>';
     window.db.innerHTML = html;
   },
-};
-
-// init
-var init = () => { //eslint-disable-line
-  console.log('init');
-  setStyle();
-  document.body.style = stylize(bodyStyle);
-  engine.init();
-  debug.showMap();
 };

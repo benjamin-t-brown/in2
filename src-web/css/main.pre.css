@@ -340,6 +340,25 @@ body {
   filter: brightness(125%);
 }
 
+.item-defer {
+  background-color: #8a3691;
+  text-align: center;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.SECONDARY;
+  min-width: 200px;
+  max-width: 400px;
+  white-space: pre;
+  color: $css.colors.TEXT_LIGHT;
+  padding: 1rem;
+}
+
+.item-defer:hover {
+  filter: brightness(125%);
+}
+
 .item-next_file {
   background-color: $css.colors.TEXT_LIGHT;
   padding: 8px;

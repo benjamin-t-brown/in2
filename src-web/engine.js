@@ -95,44 +95,49 @@ exports._core = {
     });
   },
 
-  choose(text, node_id, choices) {
-    this.centerAtActiveNode();
-    if (text) {
-      _console_log(text);
-      _console_log();
-    }
-    _console_log('---------');
-    const actual_choices = choices.filter(choice => {
-      if (choice.condition()) {
-        return true;
-      } else {
-        return false;
-      }
-    });
-    if (last_choose_node_id === node_id) {
-      // actual_choices = actual_choices.filter( ( choice ) => {
-      // 	return last_choose_nodes_selected.indexOf( choice.text ) === -1;
-      // } );
-    } else {
-      last_choose_node_id = node_id;
-      last_choose_nodes_selected = [];
-    }
-    let ctr = 1;
-    actual_choices.forEach(choice => {
-      _console_log('  ' + ctr + '.) ' + choice.text);
-      ctr++;
-    });
-    _console_log('---------');
-    this.catcher.setKeypressEvent(key => {
-      const choice = actual_choices[key - 1];
-      if (choice) {
-        last_choose_nodes_selected.push(choice.text);
-        this.catcher.setKeypressEvent(() => {});
-        disable_next_say_wait = true;
-        choice.cb();
+  async choose(text, node_id, choices) {
+    return new Promise(resolve => {
+      this.centerAtActiveNode();
+      if (text) {
+        _console_log(text);
         _console_log();
-        disable_next_say_wait = false;
       }
+      _console_log('---------');
+      const actual_choices = choices.filter(choice => {
+        if (choice.condition()) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+      if (last_choose_node_id === node_id) {
+        // actual_choices = actual_choices.filter( ( choice ) => {
+        // 	return last_choose_nodes_selected.indexOf( choice.text ) === -1;
+        // } );
+      } else {
+        last_choose_node_id = node_id;
+        last_choose_nodes_selected = [];
+      }
+      let ctr = 1;
+      actual_choices.forEach(choice => {
+        _console_log('  ' + ctr + '.) ' + choice.text);
+        ctr++;
+      });
+      _console_log('---------');
+      this.catcher.setKeypressEvent(key => {
+        const choice = actual_choices[key - 1];
+        console.log('GOT A KEYPRESS', key, choice);
+        if (choice) {
+          last_choose_nodes_selected.push(choice.text);
+          this.catcher.setKeypressEvent(() => {});
+          //disable_next_say_wait = true;
+          choice.cb();
+          _console_log();
+          _console_log(choice.text);
+          disable_next_say_wait = false;
+          resolve();
+        }
+      });
     });
   },
 
@@ -226,17 +231,22 @@ function evalInContext(js, context) {
 const postfix = `
 player = {...player, ...exports._player};
 core = {...core, ...exports._core};
+engine.init();
 `;
 
 let standalone = '';
 exports.runFile = async function(file) {
   _console_log('Success!');
   _console_log('');
-  if (!standalone) {
-    console.log('fetching standalone file');
-    standalone = (await utils.get('/standalone/')).data;
-  }
+  //if (!standalone) {
+  console.log('fetching standalone file');
+  standalone = (await utils.get('/standalone/')).data;
+  //}
   const context = {};
   console.log('Now evaluating...');
-  evalInContext(standalone + '\n' + postfix + '\n' + file, context);
+  try {
+    evalInContext(standalone + '\n' + postfix + '\n' + file, context);
+  } catch (e) {
+    console.error(e);
+  }
 };
