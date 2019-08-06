@@ -2,6 +2,8 @@ const $ = require('jquery');
 const expose = require('expose');
 const utils = require('utils');
 
+window.IN2 = true;
+
 const _console_log = text => {
   expose.get_state('player-area').add_line(text || '');
 };
@@ -11,14 +13,19 @@ class KeyCatcher {
     this.disabled = false;
     this.cb = () => {};
 
-    this.on_keypress = ev => {
+    this.onKeypress = ev => {
       if (this.disabled) {
         return;
       }
       this.cb(String.fromCharCode(ev.which));
     };
 
-    window.addEventListener('keydown', this.on_keypress);
+    this.onMouseDown = ev => {
+      this.onKeypress(ev);
+    };
+
+    window.addEventListener('keydown', this.onKeypress);
+    //window.addEventListener('mousedown', this.onMouseDown);
   }
 
   setKeypressEvent(cb) {
@@ -126,14 +133,13 @@ exports._core = {
       _console_log('---------');
       this.catcher.setKeypressEvent(key => {
         const choice = actual_choices[key - 1];
-        console.log('GOT A KEYPRESS', key, choice);
         if (choice) {
           last_choose_nodes_selected.push(choice.text);
           this.catcher.setKeypressEvent(() => {});
-          //disable_next_say_wait = true;
           choice.cb();
           _console_log();
           _console_log(choice.text);
+          _console_log();
           disable_next_say_wait = false;
           resolve();
         }
@@ -231,7 +237,6 @@ function evalInContext(js, context) {
 const postfix = `
 player = {...player, ...exports._player};
 core = {...core, ...exports._core};
-engine.init();
 `;
 
 let standalone = '';

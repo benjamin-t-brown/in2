@@ -1,0 +1,29 @@
+Engine Room
+
+The roaring of exploding rocket fuel drowns out all the other noise.  Here is the engine room for the station.  Miraculously it remains decent working order, even though the engineers who mantain the behemoth propulsion system are no longer present.  Valves and ventalation shafts line the walls, densly packed between large computation and monitoring stations.
+
+Library
+
+Silence.  You have entered the library.  Though it pales in comparison to a proper library on earth, it is still a welcome respite from the the noise on the station.  Books are crammed into tightly-layered shelves, ranging from ancient history to self-help.  A few of them have fallen on the ground due to the turbulance of the station.  Nobody has put them back on the shelves yet.
+
+Overlook
+
+A vast glass-panel overlooks the expanse of space.  It appears that this room's sole purpose was for scenery.  You cannot see much though, the solar-tinted windows block most of the harmful light in space.
+
+Food Storage
+
+It is cold in here.  And dark.  You have entered into the room designated for food storage, and only recognize this by the vats of thick dust splayed haphazardly across the floor.  Though the dehydrated food is unappealing in this state, the cooking staff had always found ample ways to keep it fresh and tasty.  They are gone now.  And so is your appetite.
+
+Game Room
+
+Someone saw fit to repurpose this storage room as an free-form arcade.  A few hacked-together terminals stand in the corners of the room, and a makeshift air-hockey table dominates the center.  None of the appliances work any more.  Their screens are cracked, and the wiring for the table has been sliced clean through.
+
+Tavern
+
+The smell of alcohol wrinkles your nose.  This is very clearly the tavern.  Upturned, wooden stools and tables are scattered across the floor.  Most of the drinks that had decorated the shelves behind the bar now lay shattered on the ground, leaving a dampness in the carbon-carpeted flooring.  You cannot help but think: what a waste...
+
+Markets
+
+You enter a large dome of a room, the lights above shining brightly such that you shade your eyes to see.  It appears you have walked into the markets.  Stalls and stations for the various vendors who pass through the station are lined in neat rows in the center.  Some still have their advertisements and decorations still up, their owners having not bothered to remove them on the previous day.  It is eerie to be in this room without anybody in it.  Anything could jump out at you from inside one of the many hiding places here.
+
+

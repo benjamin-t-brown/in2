@@ -2,43 +2,8 @@ var React = require('react');
 var expose = require('expose');
 var css = require('css');
 var utils = require('utils');
-var engine = require('engine'); //eslint-disable-line no-unused-vars
+var core = require('core');
 var $ = require('jquery');
-
-class PictureArea extends expose.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      pic: '',
-    };
-    this.expose('picture');
-
-    this.state.setPicture = url => {
-      this.setState({
-        pic: url,
-      });
-    };
-  }
-  render() {
-    return React.createElement(
-      'div',
-      {
-        style: {
-          width: this.state.pic ? '400px' : '0%',
-          backgroundSize: '100% 100%',
-          backgroundRepeat: 'no-repeat',
-          backgroundImage: this.state.pic ? 'url(' + this.state.pic + ')' : null,
-        },
-      },
-      this.state.pic &&
-        React.createElement('canvas', {
-          id: 'canvas_scene',
-          width: '400px',
-          height: '400px',
-        })
-    );
-  }
-}
 
 module.exports = class PlayerArea extends expose.Component {
   constructor(props) {
@@ -54,14 +19,14 @@ module.exports = class PlayerArea extends expose.Component {
 
     this.hide = () => {
       expose.get_state('board').removeAllExtraClasses();
-      engine.disable();
+      core.disable();
       this.setState({
         visible: false,
       });
     };
 
     this.add_line = line => {
-      var arr = this.state.text;
+      const arr = this.state.text;
       arr.push(line);
       if (this.timeout !== null) {
         clearTimeout(this.timeout);
@@ -85,12 +50,11 @@ module.exports = class PlayerArea extends expose.Component {
     this.compile = filename => {
       this.show();
       expose.get_state('board').removeAllExtraClasses();
-      expose.get_state('picture').setPicture('');
 
       var _on_compile = resp => {
         console.log('RESP', resp);
         if (resp.data.success) {
-          engine.runFile(resp.data.file);
+          core.runFile(resp.data.file);
         } else {
           this.add_line('Failure!');
           this.setState({
@@ -170,6 +134,10 @@ module.exports = class PlayerArea extends expose.Component {
                 expose.get_state('board').centerOnNode(id);
                 $('#' + id).addClass('item-error');
               });
+            } else {
+              setTimeout(() => {
+                core._core.catcher.onMouseDown(ev);
+              });
             }
           }
           ev.stopPropagation();
@@ -182,6 +150,7 @@ module.exports = class PlayerArea extends expose.Component {
           //$('#diagram-parent').panzoom('enable');
         },
         style: {
+          cursor: 'default',
           height: window.innerHeight / 2 + 'px',
           width: '100%',
           backgroundColor: css.colors.TEXT_DARK,
@@ -217,7 +186,7 @@ module.exports = class PlayerArea extends expose.Component {
           'Close'
         )
       ),
-      React.createElement(PictureArea),
+      <div id="db" />,
       React.createElement(
         'div',
         {
@@ -282,8 +251,8 @@ module.exports = class PlayerArea extends expose.Component {
                 },
               },
               error.filename + '|' + error.node_id + '|' + error.text,
-              React.createElement('br'),
-              React.createElement('br')
+              <br />,
+              <br />
             );
           })
         )
