@@ -1,4 +1,4 @@
 {
-  "standaloneEnginePath": "src-js-standalone/engine.js",
-  "additionalPaths": []
+  "standaloneCorePath": "src-js-standalone/core.js",
+  "additionalPaths": ["src-js-standalone/engine.js"]
 }

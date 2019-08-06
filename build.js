@@ -7,6 +7,16 @@ const uglifycss = require('uglifycss');
 const Terser = require('terser');
 const shell = require('child_process');
 
+let config;
+try {
+  config = JSON.parse(fs.readFileSync(__dirname + '/config.json').toString());
+} catch (e) {
+  console.log(
+    '[WARN] Using config.template.js instead of config.js.  Copy and replace with your configs.'
+  );
+  config = JSON.parse(fs.readFileSync(__dirname + '/config.template.json').toString());
+}
+
 const _executeAsync = async function(cmd) {
   return new Promise(resolve => {
     console.log(cmd);
@@ -28,8 +38,16 @@ env.NPM_CONFIG_COLOR = 'always';
 const rules = {
   'build-standalone': async function(cb) {
     const index = fs.readFileSync('src-js-standalone/index.html');
-    const engine = fs.readFileSync('src-js-standalone/engine.js');
     const main = fs.readFileSync('src-compile/main.compiled.js');
+
+    let standalone = fs
+      .readFileSync(__dirname + '/' + config.standaloneCorePath)
+      .toString();
+    for (let i = 0; i < config.additionalPaths.length; i++) {
+      standalone +=
+        '\n' + fs.readFileSync(__dirname + '/' + config.additionalPaths[i]).toString();
+    }
+    standalone += '\n' + fs.readFileSync('src-js-standalone/init.js').toString();
 
     const script = '<script src="main.min.js"></script>';
     let didInsertScript = false;
@@ -51,7 +69,7 @@ const rules = {
       .join('\n')
       .replace(/[\n]{2,}/g, '\n');
 
-    const concat = engine.toString() + '\ninit();\n' + main.toString();
+    const concat = standalone.toString() + '\n' + main.toString();
 
     const mainMin = Terser.minify(
       {
@@ -78,10 +96,8 @@ const rules = {
     await _executeAsync(
       'advzip -4 -a standalone/standalone.adv.zip standalone/index.html standalone/main.min.js'
     );
-    await _executeAsync(`stat -c '%n %s' standalone/main.concat.js`);
-    await _executeAsync(`stat -c '%n %s' standalone/main.min.js`);
-    await _executeAsync(`stat -c '%n %s' standalone/standalone.zip`);
-    await _executeAsync(`stat -c '%n %s' standalone/standalone.adv.zip`);
+    await _executeAsync(`stat -c '%n %s' standalone/main.*`);
+    await _executeAsync(`stat -c '%n %s' standalone/standalone*.zip`);
     console.log('done');
     cb();
   },

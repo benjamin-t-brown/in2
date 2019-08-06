@@ -156,6 +156,9 @@ exports.show_context_menu = function(board, elem) {
       cbs.createTriggerNode = function(parent) {
         this.addNode(parent, 'trigger', ``);
       }.bind(board);
+      cbs.createDeferNode = function(parent) {
+        this.addNode(parent, 'defer', `engine.defer();`);
+      }.bind(board);
       cbs.createNextFileNode = function(parent) {
         dialog.show_input_with_select(
           expose.get_state('file-browser').file_list,

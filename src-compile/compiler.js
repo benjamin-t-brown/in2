@@ -9,12 +9,12 @@ const prettier = require('prettier');
 //    node compiler.js --file <filename>
 
 //node types:
-// root, text, choice, choice_text, choice_conditional, pass_fail, pass_text, fail_text, next_file, action, picture
+// root, text, choice, choice_text, choice_conditional, pass_fail, pass_text, fail_text, defer, next_file, action, picture
 
 const CURRENT_NODE_VAR = 'curIN2n';
 const CURRENT_FILE_VAR = 'curIN2f';
 const LAST_FILE_VAR = 'lasIN2f';
-let includeDebugStatements = true;
+let includeDebugStatements = false;
 
 let config;
 try {
@@ -26,7 +26,7 @@ try {
   config = JSON.parse(fs.readFileSync(__dirname + '/../config.template.json').toString());
 }
 let standalone = fs
-  .readFileSync(__dirname + '/../' + config.standaloneEnginePath)
+  .readFileSync(__dirname + '/../' + config.standaloneCorePath)
   .toString();
 for (let i = 0; i < config.additionalPaths.length; i++) {
   standalone +=
@@ -123,16 +123,16 @@ function _eval_content(content, params) {
   }
 }
 
-function _create_action_node(content, id, child_id) {
+function _create_action_node(content, id, childId, isAsync) {
   let evaluationFailure = _eval_content(content);
   if (evaluationFailure) {
     return evaluationFailure;
   }
   const ret =
-    `// ACTION\n` +
-    `scope.${id} = () => {\n` +
+    `// action\n` +
+    `scope.${id} = ${isAsync ? 'async ' : ''}() => {\n` +
     `    ${content};\n` +
-    `    scope.${child_id}();\n` +
+    `    scope.${childId}();\n` +
     `};\n`;
   return ret;
 }
@@ -143,7 +143,7 @@ function _create_text_node(content, id, child_id) {
     return evaluationFailure;
   }
   const ret =
-    `// TEXT\n` +
+    `// text\n` +
     `scope.${id} = () => {\n` +
     `    player.set( '${CURRENT_NODE_VAR}', '${id}' );\n` +
     `    let text = \`${content}\`;\n` +
@@ -289,11 +289,20 @@ class Compiler {
             );
             return null;
           }
-          nodes_to_compile.push(text_child);
+          const textChildChildren = file.getChildren(text_child);
+          if (!textChildChildren.length) {
+            this.error(
+              file.name,
+              text_child.id,
+              `Text choice node ${text_child.id} has no child.\n CONTENT ${text_child.content}`
+            );
+            return null;
+          }
+          nodes_to_compile.push(textChildChildren[0]);
           ret +=
             `{\n` +
             `        text: \`${text_child.content}\`,\n` +
-            `        cb: scope.${text_child.id},\n` +
+            `        cb: scope.${textChildChildren[0].id},\n` +
             `        condition: () => { ${
               condition_child ? 'return ' + condition_child.content : 'return true;'
             } }\n` +
@@ -322,7 +331,7 @@ class Compiler {
         for (let j in nodes_to_compile) {
           const child = nodes_to_compile[j];
           const r = this.compileNode(child, file);
-          if (r) {
+          if (r !== null) {
             ret += r;
           } else {
             is_invalid = true;
@@ -345,7 +354,7 @@ class Compiler {
           return null;
         }
         const nodes_to_compile = [];
-        let ret = `//${node.type}\n`;
+        let ret = `// ${node.type}\n`;
         ret += `scope.${node.id} = () => {\n`;
         for (let i in children) {
           const child = children[i];
@@ -641,6 +650,34 @@ class Compiler {
           return ret + '\n' + this.compileNode(child, file);
         }
       },
+      defer: (node, file) => {
+        const children = file.getChildren(node);
+        if (children.length === 0) {
+          this.error(
+            file.name,
+            node.id,
+            `Defer node ${node.id} has no child.\n CONTENT ${node.content}`
+          );
+          return null;
+        } else if (children.length > 1) {
+          this.error(
+            file.name,
+            node.id,
+            `Defer node ${node.id} has multiple children.\n CONTENT ${node.content}`
+          );
+          return null;
+        } else {
+          const child = children[0];
+          const ret =
+            `// defer\n` +
+            `scope.${node.id} = async () => {\n` +
+            `    player.set('${CURRENT_NODE_VAR}', '${node.id}');\n` +
+            `    await core.defer(${node.content});\n` +
+            `    scope.${child.id}();\n` +
+            `};\n`;
+          return ret + '\n' + this.compileNode(child, file);
+        }
+      },
       next_file: node => {
         this.files_to_verify.push(node.content);
         let ret =
@@ -657,7 +694,7 @@ class Compiler {
             '        core.say( `EXECUTION WARNING, no file exists named ${key}. You are probably running a subset of all the files, and not the whole scenario. ` + Object.keys(files), files.exit );\n' + //eslint-disable-line
             `    }\n`;
         }
-        ret += `};\n`;
+        ret += `};\n\n`;
         return ret;
       },
     };
@@ -773,13 +810,20 @@ const compile = function(inputFiles, outputUrls) {
   let mainFileName = '';
   const failed_files = [];
   inputFiles.forEach((filename, i) => {
+    if (i === 0) {
+      mainFileName = filename.split('/').slice(-1)[0];
+    } else if (filename.slice(-10) === '/main.json') {
+      mainFileName = filename.split('/').slice(-1)[0];
+    }
+  });
+
+  console.log('MAIN FILE?', mainFileName, mainFileName.slice(10));
+
+  inputFiles.forEach((filename, i) => {
     numStarted++;
     c.readAndCompile(filename, (result, file) => {
       numFinished++;
       if (file) {
-        if (i === 0) {
-          mainFileName = file.name;
-        }
         if (result && !c.hasError(file.name)) {
           aggregatedResult += '\n\n' + result;
         } else {
@@ -792,13 +836,16 @@ const compile = function(inputFiles, outputUrls) {
           console.log(
             `Failed. Could not compile ${failed_files.length} of ${inputFiles.length} files:`
           );
-          for (const j in failed_files) {
+          for (let j in failed_files) {
             console.log(' ' + failed_files[j]);
           }
         }
-        aggregatedResult = prettier.format(aggregatedResult + c.getFooter(mainFileName), {
+        aggregatedResult = aggregatedResult + c.getFooter(mainFileName);
+        aggregatedResult = prettier.format(aggregatedResult, {
           semi: true,
           parser: 'babel',
+          singleQuote: true,
+          trailingComma: 'es5',
         });
         console.log();
         outputUrls.forEach(outputUrl => {

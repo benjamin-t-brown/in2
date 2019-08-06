@@ -179,7 +179,11 @@ http_server.get('file', (obj, resp) => {
         data: null,
       };
       ret.data = dirs.filter(dir => {
-        if (dir === 'DONT_DELETE' || dir.indexOf('loader.js') > -1) {
+        if (
+          dir === 'DONT_DELETE' ||
+          dir.slice(-4) === '.zip' ||
+          dir.indexOf('loader.js') > -1
+        ) {
           return false;
         }
         if (fs.statSync(SAVE_DIR + '/' + dir).isDirectory()) {
@@ -195,7 +199,7 @@ http_server.get('file', (obj, resp) => {
 http_server.get('standalone', (obj, resp) => {
   try {
     let standalone = fs
-      .readFileSync(__dirname + '/../' + config.standaloneEnginePath)
+      .readFileSync(__dirname + '/../' + config.standaloneCorePath)
       .toString();
     for (let i = 0; i < config.additionalPaths.length; i++) {
       standalone +=
