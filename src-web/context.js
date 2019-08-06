@@ -1,9 +1,10 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
-var expose = require('./expose');
-var css = require('./css');
-var utils = require('utils');
-var dialog = require('dialog');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import expose from './expose';
+import css from './css';
+import utils from 'utils';
+import dialog from 'dialog';
+import { addCustomNodeDefinitions } from './custom';
 
 class Context extends expose.Component {
   constructor(props) {
@@ -164,6 +165,7 @@ exports.show_context_menu = function(board, elem) {
           }
         );
       }.bind(board);
+      addCustomNodeDefinitions(board, cbs);
     }
   }
 

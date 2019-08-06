@@ -15,7 +15,7 @@
     "debug:standalone": "concurrently \"open-cli http://127.0.0.1:8887/src-js-standalone/index.html --background\" \"http-server -p 8887\" ",
     "build": "node build.js build-css && webpack --progress && terser --compress --mangle -o dist/main.min.js -- dist/main.js",
     "build:css": "node build.js build-css",
-    "build:standalone": "node build.js build-standalone",
+    "build:standalone": "npm run build:compiled && node build.js build-standalone",
     "build:compiled": "node src-compile/compiler.js",
     "copy-save": "zip -9 save/save.zip save/*",
     "uncopy-save": "unzip save/save.zip",

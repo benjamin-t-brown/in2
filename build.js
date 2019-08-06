@@ -78,6 +78,8 @@ const rules = {
     await _executeAsync(
       'advzip -4 -a standalone/standalone.adv.zip standalone/index.html standalone/main.min.js'
     );
+    await _executeAsync(`stat -c '%n %s' standalone/main.concat.js`);
+    await _executeAsync(`stat -c '%n %s' standalone/main.min.js`);
     await _executeAsync(`stat -c '%n %s' standalone/standalone.zip`);
     await _executeAsync(`stat -c '%n %s' standalone/standalone.adv.zip`);
     console.log('done');

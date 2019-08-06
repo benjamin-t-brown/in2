@@ -10,7 +10,7 @@ const jsPlumb = window.jsPlumb;
 
 const BOARD_SIZE_PIXELS = 6400;
 
-const getNodeId = () => {
+export const getNodeId = () => {
   let id = utils.random_id(6);
   while (window.id) {
     id = utils.random_id(6);
@@ -377,7 +377,7 @@ class Board extends expose.Component {
     };
     state.pasteSelection = this.pasteSelection;
 
-    //remove (node-error, node-active) from nodes
+    //remove (item-error, item-active) from nodes
     this.removeAllExtraClasses = () => {
       $('.jtk-draggable')
         .removeClass('item-active')
@@ -385,6 +385,16 @@ class Board extends expose.Component {
         .css('outline', '');
     };
     state.removeAllExtraClasses = this.removeAllExtraClasses;
+
+    state.addNode = (parent, type, defaultText) => {
+      return this.addNode(parent, type, defaultText);
+    };
+    state.saveFile = () => {
+      this.saveFile();
+    };
+    state.buildDiagram = () => {
+      this.buildDiagram();
+    };
 
     utils.set_on_copy(() => {
       if (!dialog.is_visible()) {
