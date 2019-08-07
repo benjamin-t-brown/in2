@@ -14,7 +14,7 @@ const prettier = require('prettier');
 const CURRENT_NODE_VAR = 'curIN2n';
 const CURRENT_FILE_VAR = 'curIN2f';
 const LAST_FILE_VAR = 'lasIN2f';
-let includeDebugStatements = false;
+let includeDebugStatements = true;
 
 let config;
 try {
@@ -819,7 +819,7 @@ const compile = function(inputFiles, outputUrls) {
     }
   });
 
-  inputFiles.forEach((filename, i) => {
+  inputFiles.forEach(filename => {
     numStarted++;
     c.readAndCompile(filename, (result, file) => {
       numFinished++;
@@ -841,12 +841,16 @@ const compile = function(inputFiles, outputUrls) {
           }
         }
         aggregatedResult = aggregatedResult + c.getFooter(mainFileName);
-        aggregatedResult = prettier.format(aggregatedResult, {
-          semi: true,
-          parser: 'babel',
-          singleQuote: true,
-          trailingComma: 'es5',
-        });
+        try {
+          aggregatedResult = prettier.format(aggregatedResult, {
+            semi: true,
+            parser: 'babel',
+            singleQuote: true,
+            trailingComma: 'es5',
+          });
+        } catch (e) {
+          console.error('PRETTIER FAILURE', e);
+        }
         console.log();
         outputUrls.forEach(outputUrl => {
           output_result(aggregatedResult, outputUrl);

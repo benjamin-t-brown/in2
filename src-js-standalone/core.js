@@ -1,7 +1,8 @@
 /**
  * Core File for IN2 execution.
  *
- * Any "var" in this file is on purpose hoisted into window/global
+ * Any "var" in this file is on purpose hoisted .  The styles variables are supposed to
+ * be hoisted into the window.
  */
 
 // Style ------
@@ -35,7 +36,7 @@ let setStyle = () => {
   };
 };
 
-let stylize = style => {
+var stylize = style => {
   let agg = '';
   for (let i in style) {
     agg += i + ':' + style[i] + ';';

@@ -34,3 +34,7 @@ rules:
       trailingComma: 'es5'
   no-lone-blocks: 0
   no-throw-literal: 0
+  no-unused-vars:
+    - 1
+    - vars: 'local'
+      varsIgnorePattern: '^glob_'
