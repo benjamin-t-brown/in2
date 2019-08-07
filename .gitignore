@@ -2,7 +2,6 @@ tree-builder/save/*.json
 node_modules
 *.png
 *.pdn
-*.txt
 npm-debug.log
 *.compiled.js
 *.compiled.cpp

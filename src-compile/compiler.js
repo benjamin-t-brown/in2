@@ -14,7 +14,7 @@ const prettier = require('prettier');
 const CURRENT_NODE_VAR = 'curIN2n';
 const CURRENT_FILE_VAR = 'curIN2f';
 const LAST_FILE_VAR = 'lasIN2f';
-let includeDebugStatements = false;
+let includeDebugStatements = true;
 
 let config;
 try {
@@ -101,8 +101,12 @@ function _eval_content(content, params) {
   }
 
   const prefix = `
-  let window = global;
+  var window = global;
   window.addEventListener = () => {};
+  window.IN2 = true;
+  window.IN2COMPILER = true;
+  var document = window.document = {};
+  window.stylize = () => {};
   `;
 
   const postfix = `
@@ -812,12 +816,8 @@ const compile = function(inputFiles, outputUrls) {
   inputFiles.forEach((filename, i) => {
     if (i === 0) {
       mainFileName = filename.split('/').slice(-1)[0];
-    } else if (filename.slice(-10) === '/main.json') {
-      mainFileName = filename.split('/').slice(-1)[0];
     }
   });
-
-  console.log('MAIN FILE?', mainFileName, mainFileName.slice(10));
 
   inputFiles.forEach((filename, i) => {
     numStarted++;

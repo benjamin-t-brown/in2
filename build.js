@@ -37,7 +37,7 @@ env.NPM_CONFIG_COLOR = 'always';
 
 const rules = {
   'build-standalone': async function(cb) {
-    const index = fs.readFileSync('src-js-standalone/index.html');
+    const index = fs.readFileSync(__dirname + '/' + config.standaloneIndexPath);
     const main = fs.readFileSync('src-compile/main.compiled.js');
 
     let standalone = fs
@@ -47,7 +47,6 @@ const rules = {
       standalone +=
         '\n' + fs.readFileSync(__dirname + '/' + config.additionalPaths[i]).toString();
     }
-    standalone += '\n' + fs.readFileSync('src-js-standalone/init.js').toString();
 
     const script = '<script src="main.min.js"></script>';
     let didInsertScript = false;
@@ -78,6 +77,14 @@ const rules = {
       {
         toplevel: true,
         warnings: true,
+        compress: {
+          unsafe: true,
+          passes: 5,
+          booleans_as_integers: true,
+          hoist_funs: true,
+          keep_fargs: false,
+        },
+        mangle: true,
       }
     );
     if (mainMin.error) throw mainMin.error;
@@ -94,7 +101,7 @@ const rules = {
       'zip -q9 standalone/standalone.zip standalone/index.html standalone/main.min.js'
     );
     await _executeAsync(
-      'advzip -4 -a standalone/standalone.adv.zip standalone/index.html standalone/main.min.js'
+      'advzip --shrink-insane --iter 100 -a standalone/standalone.adv.zip standalone/index.html standalone/main.min.js'
     );
     await _executeAsync(`stat -c '%n %s' standalone/main.*`);
     await _executeAsync(`stat -c '%n %s' standalone/standalone*.zip`);
