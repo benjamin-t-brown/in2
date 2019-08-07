@@ -91,7 +91,7 @@ const rules = {
     fs.writeFileSync('standalone/main.min.js', mainMin.code);
     console.log('zipping standalone/standalone.zip...');
     await _executeAsync(
-      'zip -9 standalone/standalone.zip standalone/index.html standalone/main.min.js'
+      'zip -q9 standalone/standalone.zip standalone/index.html standalone/main.min.js'
     );
     await _executeAsync(
       'advzip -4 -a standalone/standalone.adv.zip standalone/index.html standalone/main.min.js'
