@@ -42,7 +42,13 @@ function glob_initRooms() {
 
 function glob_getRandomRoomName(zone) {
   let localRooms = roomsByZone[zone] || {};
-  let roomName = glob_oneOf(Object.keys(localRooms).concat(Object.keys(roomsByZone.any)));
+  let roomName = glob_oneOf(
+    Object.keys(localRooms)
+      .filter(roomName => {
+        return usedRooms.indexOf(roomName) === -1;
+      })
+      .concat(Object.keys(roomsByZone.any))
+  );
   usedRooms.push(roomName);
   return roomName;
 }

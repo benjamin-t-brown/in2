@@ -1,0 +1,31 @@
+EVENT - Hull Breach From Neglectful Maintainance
+
+*Crunch*  Alarmingly, a section of metal on a nearby wall suddenly begins fold in on itself as it fails under the pressure difference between the station and the void of space.  Bolts pop from the armored plating, ricocheting across the room at speeds faster than bullets.  In a few moments, a hull breach will occur if you don't do anything!
+
+...
+
+EVENT - Ghost
+
+Something feels off...  A feint mist blurs your vision, and a coldness chills your blood.  Before long, a hazy shape appears before you.
+
+"Who is it that has disturbed my slumber?" the corporeal being says in a low rumble.
+
+...
+
+EVENT - Electronics malfunction
+
+Aprubtly the hair on your body stands on end as an arc of electricty materializes in front of your face between two exposed cables on the walls.  In surprise you stumble backwards, just in time to dodge another arc.
+
+...
+
+PERSISTENT EVENT - Injured Survivor
+
+A weak moan reaches your ears.  Somebody is in this room!  A quick glance around reveals a man lying on the floor, leg jutting out at an awkward angle.  His eyes squint at you as you approach, and widen when he realizes that he sees that somebody else is alive.
+
+"Help me..." he rasps.
+
+...
+
+PERSISTENT EVENT - Hull Breach
+
+The ground suddenly shakes, as if an earthquake has just occurred.  Something has rammed into the station.  The problem is, you have no idea where.
