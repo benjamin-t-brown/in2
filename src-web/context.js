@@ -4,7 +4,8 @@ import expose from './expose';
 import css from './css';
 import utils from 'utils';
 import dialog from 'dialog';
-import { addCustomNodeDefinitions } from './custom';
+
+const exp = {};
 
 class Context extends expose.Component {
   constructor(props) {
@@ -69,10 +70,10 @@ class Context extends expose.Component {
 }
 
 window.addEventListener('click', () => {
-  exports.hide();
+  exp.hide();
 });
 
-exports.show = function(x, y, node, file, cbs) {
+exp.show = function(x, y, node, file, cbs) {
   ReactDOM.render(
     React.createElement(Context, {
       visible: true,
@@ -88,7 +89,7 @@ exports.show = function(x, y, node, file, cbs) {
   );
 };
 
-exports.hide = function() {
+exp.hide = function() {
   ReactDOM.render(
     React.createElement(Context, {
       visible: false,
@@ -97,7 +98,7 @@ exports.hide = function() {
   );
 };
 
-exports.show_context_menu = function(board, elem) {
+exp.show_context_menu = function(board, elem) {
   if (utils.is_ctrl()) {
     return;
   }
@@ -168,9 +169,10 @@ exports.show_context_menu = function(board, elem) {
           }
         );
       }.bind(board);
-      addCustomNodeDefinitions(board, cbs);
     }
   }
 
-  exports.show(x, y, file_node, board.file, cbs);
+  exp.show(x, y, file_node, board.file, cbs);
 };
+
+export default exp;

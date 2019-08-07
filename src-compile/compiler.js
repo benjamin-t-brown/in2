@@ -14,7 +14,7 @@ const prettier = require('prettier');
 const CURRENT_NODE_VAR = 'curIN2n';
 const CURRENT_FILE_VAR = 'curIN2f';
 const LAST_FILE_VAR = 'lasIN2f';
-let includeDebugStatements = true;
+let includeDebugStatements = false;
 
 let config;
 try {

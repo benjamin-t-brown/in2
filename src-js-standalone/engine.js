@@ -181,6 +181,7 @@ var engine = {
     }
     return ret;
   },
+  async setupRoom() {},
   async showRoomChoices() {
     let directions = {
       north: '↑',

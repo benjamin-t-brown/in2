@@ -12,11 +12,11 @@ A vast glass-panel overlooks the expanse of space.  It appears that this room's 
 
 Food Storage
 
-It is cold in here.  And dark.  You have entered into the room designated for food storage, and only recognize this by the vats of thick dust splayed haphazardly across the floor.  Though the dehydrated food is unappealing in this state, the cooking staff had always found ample ways to keep it fresh and tasty.  They are gone now.  And so is your appetite.
+It is cold in here.  And dark.  You have entered into the room designated for food storage, and only recognize this by the vats of thick dust splayed haphazardly across the floor.  Though the dehydrated food is unappealing in this state, it is the cooking staff's duty to find ample ways to keep it fresh and tasty.  They are gone now.  And so is your appetite.
 
 Game Room
 
-Someone saw fit to repurpose this storage room as an free-form arcade.  A few hacked-together terminals stand in the corners of the room, and a makeshift air-hockey table dominates the center.  None of the appliances work any more.  Their screens are cracked, and the wiring for the table has been sliced clean through.
+Someone saw fit to repurpose this storage room as an free-form arcade.  The sight is fairly bare-bones: a few hacked-together terminals stand in the corners of the room, and a makeshift air-hockey table stands at askance angle in the center.  None of the appliances work any more.  Their screens are cracked, and the wiring for the table has been sliced clean through.
 
 Tavern
 
@@ -26,4 +26,11 @@ Markets
 
 You enter a large dome of a room, the lights above shining brightly such that you shade your eyes to see.  It appears you have walked into the markets.  Stalls and stations for the various vendors who pass through the station are lined in neat rows in the center.  Some still have their advertisements and decorations still up, their owners having not bothered to remove them on the previous day.  It is eerie to be in this room without anybody in it.  Anything could jump out at you from inside one of the many hiding places here.
 
+Hanger C
+
+You step into a ship hanger, one of three on the station, though clearly this is the crew-only one.  It feels cramped.  Tanker vessels are docked in painted-off stations, their cargo holds half-emptied, their reinforced shipping crates left in a disorganized mass across the floor, obstructing a clean walkway across the room.  The large doors that open into the vastness of space rumble ominously, streaks of electricity occasionally arcing from the electronic bolts that hold them in place.
+
+Gym
+
+The room contains a mess of gym equipment, having been knocked over and strewn across the floor.  The ventelation shafts above spew hot air into the room, and condensation is slowly forming and the small bits of uncracked mirrors on the walls.
 
