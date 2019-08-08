@@ -1,20 +1,38 @@
 EVENT - Hull Breach From Neglectful Maintainance
 
-*Crunch*  Alarmingly, a section of metal on a nearby wall suddenly begins fold in on itself as it fails under the pressure difference between the station and the void of space.  Bolts pop from the armored plating, ricocheting across the room at speeds faster than bullets.  In a few moments, a hull breach will occur if you don't do anything!
+*Crunch*  Alarmingly, a section of metal on a nearby wall begins fold in on itself as it fails under the pressure difference between the station and the void of space.  It looks like poor maintainance is causing the wall to collapse! Bolts pop from the armored plating, ricocheting across the room at speeds faster than bullets.  In a few moments, a hull breach will occur if you don't do anything!
 
 ...
+
+ - fixed with enough engineering skill or a Portable Forcefield, failure causes death
+ - if you run away, you run to a random, nearby, unlocked room.  Spawn a Space Suit in any tile which player has access to.
+ - make room locked with NO_AIR
 
 EVENT - Ghost
 
 Something feels off...  A feint mist blurs your vision, and a coldness chills your blood.  Before long, a hazy shape appears before you.
 
-"Who is it that has disturbed my slumber?" the corporeal being says in a low rumble.
+"Who is it that has disturbed my slumber?" the corporeal being says in a low rumble.  It reaches out towards you, and an icy chill washes across your face.
 
 ...
 
-EVENT - Electronics malfunction
+EVENT - Electronics Malfunction
 
 Aprubtly the hair on your body stands on end as an arc of electricty materializes in front of your face between two exposed cables on the walls.  In surprise you stumble backwards, just in time to dodge another arc.
+
+...
+
+EVENT - Playful AI
+
+An odd noice reaches your ears: a giggle... from a little girl.  Something flits by at the edge of your vision, but when you turn to look, it is no longer there.  It happens again, and you spin around to see nothing once more.
+
+A girl's voice speaks: "You're not supposed to be here, you know."  Behind you, on a nondescript screen hanging halfway from the wall, and upon it is a small person consctructed of ASCII lettering.
+
+...
+
+EVENT (labs) - Confined Alien Beast
+
+A loud *thump* comes from one of the nearby holding cells.  Apparantly the specimin inside is still alive!  The *thump* comes again, louder this time.  Whatever it is, it's trying to escape.
 
 ...
 
@@ -26,6 +44,7 @@ A weak moan reaches your ears.  Somebody is in this room!  A quick glance around
 
 ...
 
-PERSISTENT EVENT - Hull Breach
+PERSISTENT EVENT - Alien Boarding Party
 
 The ground suddenly shakes, as if an earthquake has just occurred.  Something has rammed into the station.  The problem is, you have no idea where.
+

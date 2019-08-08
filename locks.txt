@@ -1,0 +1,7 @@
+Standard: This door is locked with a crew encryption key.  You'll need a crew member's card to get through.
+Officer: This door is locked with an officer encryption key.  You'll need an officer's card to get through.
+Captain: This door is locked with the Captain's encryption key.  You'll need the Captain's card to get through.
+No air: This room has no air and you don't have anything that will enable you to breath in order to cross it.
+Forcefield: A forcfield of pure electricity hinders your progress.  You'll have to find some kind of EMP or shutoff in order to proceed.
+Rubble: This room is completely blocked off with rubble, but you may be able to cut your way through with some kind of lazer.
+Alien Lock: Some kind of weird goop coveres the opening mechanism on this door, eroding the metal.  You had better not touch it.
