@@ -10,12 +10,20 @@ core,
 engine,
 debug,
 player,
-glob_getMapConnectedNode,
 glob_dirToOffset,
-glob_oneOf
-glob_getMap
-glob_getPlayerLocation
+glob_oneOf,
+glob_getPlayerLocation,
+glob_getMapNodeAdj,
+glob_getMapNodeFromFileId,
 */
+
+let randomEvents = {
+  hullbreach: ['any'],
+  ghost: ['any'],
+  electricityarc: ['any'],
+  playfulai: ['any'],
+  confinedalienbeast: ['labs'],
+};
 
 let roomsByZone = {
   any: {
@@ -36,8 +44,10 @@ let roomsByZone = {
   },
 };
 let usedRooms = [];
+let usedRandomEvents = [];
 function glob_initRooms() {
   usedRooms = [];
+  usedRandomEvents = [];
 }
 
 function glob_getRandomRoomName(zone) {
@@ -53,6 +63,20 @@ function glob_getRandomRoomName(zone) {
   return roomName;
 }
 
+function glob_getRandomEvent(zone) {
+  let eventsList = [];
+  for (let eventName in randomEvents) {
+    let eventZones = randomEvents[eventName];
+    if (
+      (!usedRandomEvents.includes(eventName) && eventZones.includes(zone)) ||
+      eventZones.includes('any')
+    ) {
+      eventsList.push(eventName);
+    }
+  }
+  return glob_oneOf(eventsList);
+}
+
 async function glob_showRoomChoices() {
   let directions = {
     north: '↑',
@@ -61,27 +85,42 @@ async function glob_showRoomChoices() {
     west: '←',
   };
 
-  let choices = Object.keys(directions).reduce((arr, dir) => {
+  let choices = Object.keys(directions).map(dir => {
     let d = dir.slice(0, 1);
     let playerLocation = glob_getPlayerLocation();
-    let connectedNode = glob_getMapConnectedNode(engine.getMap(), playerLocation, d);
-    if (connectedNode) {
-      arr.push({
-        text: `Go through the ${dir} ${directions[dir]} door.`,
-        cb: () => {
+    let { x: playerX, y: playerY } = playerLocation;
+    let connectedNode = glob_getMapNodeAdj(playerX, playerY, d);
+    return {
+      text: `Go through the ${dir} ${directions[dir]} door.`,
+      cb: () => {
+        if (connectedNode) {
           player.set('nextFile', connectedNode.name);
           let { x, y } = glob_dirToOffset(d);
           playerLocation.x += x;
           playerLocation.y += y;
-        },
-        condition: () => true,
-      });
-    }
-    return arr;
-  }, []);
+        } else {
+          core.say(
+            `There is no door on the ${dir} ${directions[dir]} side.`,
+            glob_showRoomChoices
+          );
+        }
+      },
+      condition: () => true,
+    };
+  });
+
+  choices.push({
+    text: 'Examine surroundings',
+    cb: () => {
+      core.say(`You see nothing else of interest here.`, glob_showRoomChoices);
+    },
+    condition: () => true,
+  });
 
   await core.choose('Now what?', 'showRoomChoices', choices);
   debug.showMap();
 }
 
-async function glob_setupRoom(nodeId, fileId) {}
+async function glob_setupRoom(nodeId, fileId) {
+  glob_getMapNodeFromFileId(nodeId, fileId);
+}

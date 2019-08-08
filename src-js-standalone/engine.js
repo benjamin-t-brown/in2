@@ -6,29 +6,46 @@
 
 /*
 global
-core,
+core,h
 stylize,
 engine,
 debug,
 player,
 glob_random,
 glob_pctChance,
-glob_oneOf
-glob_getMapNodeAt
-glob_initRooms,
+glob_oneOf,
+glob_getWith2dFrom1dArr,
+glob_bfs,
+glob_initRooms
 glob_setupRoom
 glob_showRoomChoices
 glob_getRandomRoomName
 */
 
+let MAP_WIDTH = 6;
+let MAP_HEIGHT = 6;
 let map = [];
 let zones = [];
-let mapWidth = 6;
-let mapHeight = 6;
 let playerLocation = { x: 0, y: 0 };
 
 var glob_getMap = () => map;
 var glob_getPlayerLocation = () => playerLocation;
+var glob_getMapNodeAt = (x, y) => glob_getWith2dFrom1dArr(map, MAP_WIDTH, x, y);
+var glob_getMapNodeAdj = (x, y, dir) => {
+  let node = glob_getMapNodeAt(map, x, y);
+  if (node.adj) {
+    return node.adj[dir] || null;
+  } else {
+    return null;
+  }
+};
+var glob_getMapNodeFromFileId = fileId => {
+  let [zone, name] = fileId.split('-');
+  name = name.slice(0, -5);
+  return map.reduce((prev, curr) => {
+    return prev || (curr.zone === zone && curr.name === name && curr);
+  }, null);
+};
 
 let createMapNode = (x, y) => {
   return {
@@ -38,9 +55,9 @@ let createMapNode = (x, y) => {
     adj: {
       //n, s, e, w
     },
+    locks: [],
+    zone: '',
     //v (visited)
-    //zone
-    //lockName
   };
 };
 
@@ -54,43 +71,20 @@ var engine = {
     playerLocation.x = x;
     playerLocation.y = y;
   },
-  bfs(map, { startingNode, cb, conditionCb }) {
-    map.forEach(node => {
-      node.v = false;
-      node.parent = null;
-    });
-    let node;
-    let unvisitedList = [startingNode];
-    startingNode.v = true;
-    while (unvisitedList.length) {
-      node = unvisitedList.shift();
-      if (cb(node)) {
-        return node;
-      }
-      for (let i in node.adj) {
-        let adjNode = node.adj[i];
-        if (!adjNode.v && conditionCb(adjNode)) {
-          adjNode.v = true;
-          adjNode.parent = node;
-          unvisitedList.unshift(adjNode);
-        }
-      }
-    }
-    return node;
-  },
+
   generateMaze() {
     // uses the binary-tree method of generating a maze
     let map = [];
     let ewConnect = (adj, node, j, i) => {
-      adj.w = glob_getMapNodeAt(map, mapWidth, j - 1, i);
+      adj.w = glob_getMapNodeAt(j - 1, i);
       adj.w.adj.e = node;
     };
     let nsConnect = (adj, node, j, i) => {
-      adj.n = glob_getMapNodeAt(map, mapWidth, j, i - 1);
+      adj.n = glob_getMapNodeAt(j, i - 1);
       adj.n.adj.s = node;
     };
-    for (let i = 0; i < mapHeight; i++) {
-      for (let j = 0; j < mapWidth; j++) {
+    for (let i = 0; i < MAP_HEIGHT; i++) {
+      for (let j = 0; j < MAP_WIDTH; j++) {
         let node = createMapNode(j, i);
         let adj = node.adj;
         if (i === 0 && j === 0) {
@@ -113,18 +107,18 @@ var engine = {
     return map;
   },
   createZones(map) {
-    let zones = ['main', 'dorms', 'eng', 'labs', 'flight'];
+    let zones = ['main', 'crew', 'eng', 'labs', 'flight'];
     let zoneIndex = 0;
     let startingNode = map[Math.floor(glob_random() * map.length)];
     let lockName = '';
     let ctr = 0;
     let ret = {};
 
-    engine.bfs(map, {
+    glob_bfs(map, {
       startingNode,
       cb: node => {
         ctr++;
-        if (ctr > (mapWidth * mapHeight) / zones.length) {
+        if (ctr > (MAP_WIDTH * MAP_HEIGHT) / zones.length) {
           ctr = 0;
           zoneIndex++;
           lockName = 'basic';
@@ -137,16 +131,18 @@ var engine = {
         }
         node.zone = zone;
         node.name = glob_getRandomRoomName(zone);
-        node.lockName = lockName;
+        if (lockName) {
+          node.locks.push(lockName);
+        }
         lockName = '';
       },
       conditionCb: () => true,
     });
 
     // remove orphaned zones
-    for (let i = 0; i < mapWidth; i++) {
-      for (let j = 0; j < mapHeight; j++) {
-        let node = glob_getMapNodeAt(map, mapWidth, j, i);
+    for (let i = 0; i < MAP_WIDTH; i++) {
+      for (let j = 0; j < MAP_HEIGHT; j++) {
+        let node = glob_getMapNodeAt(j, i);
         let hasConsecutive = false;
         let nearbyZone = node.zone;
         for (let k in node.adj) {
@@ -183,15 +179,12 @@ var engine = {
 
 var debug = /*eslint-disable-line no-unused-vars*/ {
   showMap() {
-    console.log(
-      'PLAYER AT',
-      glob_getMapNodeAt(map, mapWidth, playerLocation.x, playerLocation.y)
-    );
+    console.log('PLAYER AT', glob_getMapNodeAt(playerLocation.x, playerLocation.y));
     let html = `<div style="margin:10px">`;
-    for (let i = 0; i < mapHeight; i++) {
+    for (let i = 0; i < MAP_HEIGHT; i++) {
       html += `<div style="display:flex; justifyContent: flex-start;">`;
-      for (let j = 0; j < mapWidth; j++) {
-        const node = glob_getMapNodeAt(map, mapWidth, j, i);
+      for (let j = 0; j < MAP_WIDTH; j++) {
+        const node = glob_getMapNodeAt(j, i);
         const styles = {
           'background-color': 'gray',
           width: '50px',
@@ -207,11 +200,11 @@ var debug = /*eslint-disable-line no-unused-vars*/ {
           styles['background-color'] = 'purple';
         } else if (node.zone === 'flight') {
           styles['background-color'] = 'darkcyan';
-        } else if (node.zone === 'engineering') {
+        } else if (node.zone === 'eng') {
           styles['background-color'] = 'darkslateblue';
         } else if (node.zone === 'labs') {
           styles['background-color'] = 'brown';
-        } else if (node.zone === 'dorms') {
+        } else if (node.zone === 'crew') {
           styles['background-color'] = 'green';
         }
 

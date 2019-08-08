@@ -4,9 +4,13 @@ EVENT - Hull Breach From Neglectful Maintainance
 
 ...
 
- - fixed with enough engineering skill or a Portable Forcefield, failure causes death
- - if you run away, you run to a random, nearby, unlocked room.  Spawn a Space Suit in any tile which player has access to.
- - make room locked with NO_AIR
+ - [Portable Forcefield] Deploy the portable forcefield to block off a potential breach
+ - [Alien Goo] Fling the goo at the breach and hope that it holds it together
+ - Attempt to hold the metal together with your bare hands.
+ - Run away!
+
+ * if you run away, you run to a random, nearby, unlocked room.  Spawn a Space Suit in any tile which player has access to.
+ * make room locked with NO_AIR
 
 EVENT - Ghost
 
@@ -14,19 +18,35 @@ Something feels off...  A feint mist blurs your vision, and a coldness chills yo
 
 "Who is it that has disturbed my slumber?" the corporeal being says in a low rumble.  It reaches out towards you, and an icy chill washes across your face.
 
+- [Gun] Shoot at it.
+- [Smoke Grenede] Attempt to escape. 
+- [EMP] Set of your EMP, this has to be some kind of illusion!
+- Try to grab at the incorporeal form.
+- Speak your name to this... thing.
+
 ...
 
-EVENT - Electronics Malfunction
+EVENT - Electricity Arc
 
-Aprubtly the hair on your body stands on end as an arc of electricty materializes in front of your face between two exposed cables on the walls.  In surprise you stumble backwards, just in time to dodge another arc.
+Aprubtly the hair on your body stands on end as an arc of electricty materializes in front of you between two exposed cables on the walls.  In surprise, you stumble backwards, just in time to dodge another arc.
+
+- [EMP] Disable the electric waves in this room.
+- [Portable Forcefield] Deploy the portable forcefield and attempt to block the arc.
+- Leave before this gets out of hand.
 
 ...
 
 EVENT - Playful AI
 
-An odd noice reaches your ears: a giggle... from a little girl.  Something flits by at the edge of your vision, but when you turn to look, it is no longer there.  It happens again, and you spin around to see nothing once more.
+An odd noise reaches your ears: a giggle...  Something flits by at the edge of your vision, but when you turn to look, it is no longer there.  It happens again, and you spin around to see nothing once more.
 
-A girl's voice speaks: "You're not supposed to be here, you know."  Behind you, on a nondescript screen hanging halfway from the wall, and upon it is a small person consctructed of ASCII lettering.
+A girl's voice speaks: "You're not supposed to be here, you know."  Behind you, on a nondescript screen hanging halfway from the wall, a small person, a girl, consctructed of ASCII lettering wags a finger at you.
+
+- [EMP] Disable the monitor, you don't want to deal with whatever this is.
+- [Gun] Shoot the monitor.
+- Ask who you are speaking to.
+- Tell her you're just looking around.
+- Ignore her.
 
 ...
 
@@ -38,13 +58,21 @@ A loud *thump* comes from one of the nearby holding cells.  Apparantly the speci
 
 PERSISTENT EVENT - Injured Survivor
 
-A weak moan reaches your ears.  Somebody is in this room!  A quick glance around reveals a man lying on the floor, leg jutting out at an awkward angle.  His eyes squint at you as you approach, and widen when he realizes that he sees that somebody else is alive.
+A weak moan reaches your ears.  Somebody is in this room!  A quick glance around reveals a man lying on the floor, leg jutting out at an awkward angle.  His eyes squint at you as you approach, and widen when he realizes that somebody else is alive.
 
-"Help me..." he rasps.
+"Help me..." he rasps, grasping at his leg.
+
+- [Pain Killer] Give the survivor your pain killer pill.
+- [Brandy] Pour some brandy and offer it to him.
+- [Gun] Shoot the poor fellow.  You cannot help him, and he looks to be in agony.
+- Ask who he is.
+- You have no way to help him, and can only ignore him for the moment.
 
 ...
 
-PERSISTENT EVENT - Alien Boarding Party
+PERSISTENT EVENT - Pirate Boarding Party
 
 The ground suddenly shakes, as if an earthquake has just occurred.  Something has rammed into the station.  The problem is, you have no idea where.
+
+ENCOUNTER PIRATE - 
 

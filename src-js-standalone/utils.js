@@ -17,7 +17,7 @@ var glob_pctChance = pct => {
 };
 
 var glob_oneOf = arr => {
-  return arr[Math.floor(glob_random() * arr.length)];
+  return arr[Math.floor(glob_random() * arr.length)] || null;
 };
 
 var glob_dirToOffset = dir => {
@@ -30,15 +30,31 @@ var glob_dirToOffset = dir => {
   return { x, y };
 };
 
-var glob_getMapNodeAt = (map, width, x, y) => {
+var glob_getWith2dFrom1dArr = (map, width, x, y) => {
   return map[y * width + x] || {};
 };
 
-var glob_getMapConnectedNode = (map, { x, y }, dir) => {
-  let node = glob_getMapNodeAt(map, x, y);
-  if (node.adj) {
-    return node.adj[dir] || null;
-  } else {
-    return null;
+var glob_bfs = (map, { startingNode, cb, conditionCb }) => {
+  map.forEach(node => {
+    node.v = false;
+    node.parent = null;
+  });
+  let node;
+  let unvisitedList = [startingNode];
+  startingNode.v = true;
+  while (unvisitedList.length) {
+    node = unvisitedList.shift();
+    if (cb(node)) {
+      return node;
+    }
+    for (let i in node.adj) {
+      let adjNode = node.adj[i];
+      if (!adjNode.v && conditionCb(adjNode)) {
+        adjNode.v = true;
+        adjNode.parent = node;
+        unvisitedList.unshift(adjNode);
+      }
+    }
   }
+  return node;
 };
