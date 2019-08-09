@@ -81,8 +81,8 @@ async function glob_showRoomChoices() {
   let directions = {
     north: '↑',
     south: '↓',
-    east: '→',
     west: '←',
+    east: '→',
   };
 
   let choices = Object.keys(directions).map(dir => {
@@ -110,7 +110,7 @@ async function glob_showRoomChoices() {
   });
 
   choices.push({
-    text: 'Examine surroundings',
+    text: 'Examine surroundings.',
     cb: () => {
       core.say(`You see nothing else of interest here.`, glob_showRoomChoices);
     },
@@ -118,9 +118,11 @@ async function glob_showRoomChoices() {
   });
 
   await core.choose('Now what?', 'showRoomChoices', choices);
+  console.log('CHOSEN! WHAT THE FUK');
   debug.showMap();
 }
 
 async function glob_setupRoom(nodeId, fileId) {
-  glob_getMapNodeFromFileId(nodeId, fileId);
+  console.log('SETUP ROOM', nodeId, fileId);
+  glob_getMapNodeFromFileId(fileId);
 }

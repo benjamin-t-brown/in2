@@ -156,9 +156,7 @@ exports._player = {
   state: {},
   name: 'default',
   init() {
-    this.state = {
-      inventory: [],
-    };
+    this.state = {};
   },
 
   print() {
@@ -237,20 +235,20 @@ function evalInContext(js, context) {
 const postfix = `
 player = {...player, ...exports._player};
 core = {...core, ...exports._core};
+init();
 `;
 
 let standalone = '';
 exports.runFile = async function(file) {
   _console_log('Success!');
   _console_log('');
-  //if (!standalone) {
   console.log('fetching standalone file');
   standalone = (await utils.get('/standalone/')).data;
-  //}
   const context = {};
   console.log('Now evaluating...');
   try {
     evalInContext(standalone + '\n' + postfix + '\n' + file, context);
+    window.player = exports._player;
   } catch (e) {
     console.error(e);
   }

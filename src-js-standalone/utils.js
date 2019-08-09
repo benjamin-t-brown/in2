@@ -8,6 +8,12 @@
 
 /* global player, core, stylize, glob_showRoomChoices, glob_setupRoom, glob_initRooms */
 
+// let randomSeed = 123456;
+// var glob_random = () => {
+//   let x = Math.sin(randomSeed++) * 10000;
+//   return x - Math.floor(x);
+// };
+
 var glob_random = () => {
   return Math.random();
 };

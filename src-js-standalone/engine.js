@@ -6,7 +6,7 @@
 
 /*
 global
-core,h
+core,
 stylize,
 engine,
 debug,
@@ -16,16 +16,16 @@ glob_pctChance,
 glob_oneOf,
 glob_getWith2dFrom1dArr,
 glob_bfs,
-glob_initRooms
-glob_setupRoom
-glob_showRoomChoices
-glob_getRandomRoomName
+glob_initRooms,
+glob_setupRoom,
+glob_showRoomChoices,
+glob_getRandomRoomName,
 */
 
 let MAP_WIDTH = 6;
 let MAP_HEIGHT = 6;
 let map = [];
-let zones = [];
+let zones = {};
 let playerLocation = { x: 0, y: 0 };
 
 var glob_getMap = () => map;
@@ -41,11 +41,13 @@ var glob_getMapNodeAdj = (x, y, dir) => {
 };
 var glob_getMapNodeFromFileId = fileId => {
   let [zone, name] = fileId.split('-');
+  console.log('ZONE NAME', zone, name);
   name = name.slice(0, -5);
   return map.reduce((prev, curr) => {
     return prev || (curr.zone === zone && curr.name === name && curr);
   }, null);
 };
+var glob_getFileId = ({ zone, name }) => zone + '-' + name;
 
 let createMapNode = (x, y) => {
   return {
@@ -70,17 +72,20 @@ var engine = {
     let { x, y } = node;
     playerLocation.x = x;
     playerLocation.y = y;
+    console.log('SET NEXT FILE', node.name);
+    player.set('nextFile', glob_getFileId(node));
+    console.log('GOT NEXT FILE', player.get('nextFile'));
   },
 
   generateMaze() {
     // uses the binary-tree method of generating a maze
     let map = [];
     let ewConnect = (adj, node, j, i) => {
-      adj.w = glob_getMapNodeAt(j - 1, i);
+      adj.w = glob_getWith2dFrom1dArr(map, MAP_WIDTH, j - 1, i);
       adj.w.adj.e = node;
     };
     let nsConnect = (adj, node, j, i) => {
-      adj.n = glob_getMapNodeAt(j, i - 1);
+      adj.n = glob_getWith2dFrom1dArr(map, MAP_WIDTH, j, i - 1);
       adj.n.adj.s = node;
     };
     for (let i = 0; i < MAP_HEIGHT; i++) {

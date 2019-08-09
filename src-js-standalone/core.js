@@ -1,11 +1,10 @@
 /**
  * Core File for IN2 execution.
  *
- * Any "var" in this file is on purpose hoisted .  The styles variables are supposed to
- * be hoisted into the window.
+ * Any "var" in this file is on purpose hoisted.  The Style variables are supposed to
+ * be hoisted into the window and accessed via window[nameStyle].
  */
 
-// Style ------
 let isDarkMode = true;
 var bodyStyle, textareaStyle, textStyle, choiceStyle, chosenStyle; //eslint-disable-line
 
@@ -44,11 +43,10 @@ var stylize = style => {
   return agg;
 };
 
-// Core/Player ------
 let lines = [];
 let render = () => {
   let html = `<div style=${stylize(textareaStyle)}>`;
-  lines.forEach(({ t, s }, i) => {
+  lines.slice(-500).forEach(({ t, s }, i) => {
     if (t.indexOf('Press any key') > -1 && i < lines.length - 1) {
       return;
     }
@@ -160,16 +158,18 @@ var core = /*eslint-disable-line*/ {
     });
   },
   async defer(func, args) {
-    args = args || [];
+    args = args || [player.get('curIN2n'), player.get('curIN2f')];
     await func.apply(null, args);
   },
+
+  exit() {},
 };
 
 var player = /*eslint-disable-line*/ {
   state: {
     //curIN2n
     //curIN2f
-    //lastIN2n
+    //lasIN2f
     //event
     //nextFile
   },

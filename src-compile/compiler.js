@@ -32,6 +32,7 @@ for (let i = 0; i < config.additionalPaths.length; i++) {
   standalone +=
     '\n' + fs.readFileSync(__dirname + '/../' + config.additionalPaths[i]).toString();
 }
+standalone = standalone.replace(/console\.log\((.*)\)/g, '');
 
 class File {
   constructor(json) {
