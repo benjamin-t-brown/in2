@@ -246,10 +246,12 @@ exports.runFile = async function(file) {
   standalone = (await utils.get('/standalone/')).data;
   const context = {};
   console.log('Now evaluating...');
+  const evalStr = standalone + '\n' + postfix + '\n' + file;
   try {
-    evalInContext(standalone + '\n' + postfix + '\n' + file, context);
+    evalInContext(evalStr, context);
     window.player = exports._player;
   } catch (e) {
-    console.error(e);
+    console.error(e, e.stack);
+    //console.log(evalStr);
   }
 };

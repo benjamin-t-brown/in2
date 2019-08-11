@@ -17,9 +17,9 @@ glob_oneOf,
 glob_getWith2dFrom1dArr,
 glob_bfs,
 glob_initRooms,
-glob_setupRoom,
-glob_showRoomChoices,
-glob_getRandomRoomName,
+glob_initEvents
+glob_generateRoom,
+glob_enterRoom
 */
 
 let MAP_WIDTH = 6;
@@ -28,10 +28,10 @@ let map = [];
 let zones = {};
 let playerLocation = { x: 0, y: 0 };
 
-var glob_getMap = () => map;
-var glob_getPlayerLocation = () => playerLocation;
-var glob_getMapNodeAt = (x, y) => glob_getWith2dFrom1dArr(map, MAP_WIDTH, x, y);
-var glob_getMapNodeAdj = (x, y, dir) => {
+let glob_getMap = () => map;
+let glob_getPlayerLocation = () => playerLocation;
+let glob_getMapNodeAt = (x, y) => glob_getWith2dFrom1dArr(map, MAP_WIDTH, x, y);
+let glob_getMapNodeAdj = (x, y, dir) => {
   let node = glob_getMapNodeAt(map, x, y);
   if (node.adj) {
     return node.adj[dir] || null;
@@ -39,15 +39,12 @@ var glob_getMapNodeAdj = (x, y, dir) => {
     return null;
   }
 };
-var glob_getMapNodeFromFileId = fileId => {
-  let [zone, name] = fileId.split('-');
-  console.log('ZONE NAME', zone, name);
-  name = name.slice(0, -5);
+let glob_getMapNodeFromRoomName = roomName => {
   return map.reduce((prev, curr) => {
-    return prev || (curr.zone === zone && curr.name === name && curr);
+    return prev || roomName === curr.room.roomName;
   }, null);
 };
-var glob_getFileId = ({ zone, name }) => zone + '-' + name;
+let glob_getFileId = ({ zone, name }) => zone + '-' + name;
 
 let createMapNode = (x, y) => {
   return {
@@ -57,7 +54,7 @@ let createMapNode = (x, y) => {
     adj: {
       //n, s, e, w
     },
-    locks: [],
+    //room (Room object)
     zone: '',
     //v (visited)
   };
@@ -66,15 +63,24 @@ let createMapNode = (x, y) => {
 var engine = {
   init() {
     glob_initRooms();
+    glob_initEvents();
     map = engine.generateMaze();
-    zones = engine.createZones(map);
+    zones = engine.createRooms(map);
     const node = glob_oneOf(zones.main);
     let { x, y } = node;
     playerLocation.x = x;
     playerLocation.y = y;
-    console.log('SET NEXT FILE', node.name);
-    player.set('nextFile', glob_getFileId(node));
-    console.log('GOT NEXT FILE', player.get('nextFile'));
+    player.set('nextFile', 'room');
+  },
+
+  async start() {
+    let node = glob_getMapNodeAt(playerLocation.x, playerLocation.y);
+    glob_enterRoom(node);
+  },
+
+  async room() {
+    let node = glob_getMapNodeAt(playerLocation.x, playerLocation.y);
+    await glob_enterRoom(node);
   },
 
   generateMaze() {
@@ -111,11 +117,10 @@ var engine = {
     }
     return map;
   },
-  createZones(map) {
+  createRooms(map) {
     let zones = ['main', 'crew', 'eng', 'labs', 'flight'];
     let zoneIndex = 0;
     let startingNode = map[Math.floor(glob_random() * map.length)];
-    let lockName = '';
     let ctr = 0;
     let ret = {};
 
@@ -126,7 +131,6 @@ var engine = {
         if (ctr > (MAP_WIDTH * MAP_HEIGHT) / zones.length) {
           ctr = 0;
           zoneIndex++;
-          lockName = 'basic';
         }
         let zone = zones[zoneIndex];
         if (!ret[zone]) {
@@ -135,11 +139,6 @@ var engine = {
           ret[zone].push(node);
         }
         node.zone = zone;
-        node.name = glob_getRandomRoomName(zone);
-        if (lockName) {
-          node.locks.push(lockName);
-        }
-        lockName = '';
       },
       conditionCb: () => true,
     });
@@ -168,23 +167,16 @@ var engine = {
         }
       }
     }
-    return ret;
-  },
-  async setupRoom(nodeId, fileId) {
-    glob_setupRoom(nodeId, fileId);
-  },
-  async showRoomChoices(nodeId, fileId) {
-    glob_showRoomChoices(nodeId, fileId);
-  },
 
-  getEvent() {
-    return '';
+    map.forEach(node => {
+      node.room = glob_generateRoom(node.zone);
+    });
+    return ret;
   },
 };
 
 var debug = /*eslint-disable-line no-unused-vars*/ {
   showMap() {
-    console.log('PLAYER AT', glob_getMapNodeAt(playerLocation.x, playerLocation.y));
     let html = `<div style="margin:10px">`;
     for (let i = 0; i < MAP_HEIGHT; i++) {
       html += `<div style="display:flex; justifyContent: flex-start;">`;
@@ -236,7 +228,7 @@ var debug = /*eslint-disable-line no-unused-vars*/ {
           ? 'LOCKED'
           : node.zone) +
           '<br/>' +
-          node.name}</div>`;
+          node.room.roomName}</div>`;
       }
       html += '</div>';
     }

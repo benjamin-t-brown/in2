@@ -3,7 +3,8 @@
   "additionalPaths": [
     "src-js-standalone/utils.js",
     "src-js-standalone/engine.js",
-    "src-js-standalone/room.js",
+    "src-js-standalone/event.js",
+    "src-js-standalone/rooms.js",
     "src-js-standalone/init.js"
   ],
   "standaloneIndexPath": "src-js-standalone/index.html"

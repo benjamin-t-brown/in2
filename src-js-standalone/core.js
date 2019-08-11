@@ -46,7 +46,7 @@ var stylize = style => {
 let lines = [];
 let render = () => {
   let html = `<div style=${stylize(textareaStyle)}>`;
-  lines.slice(-500).forEach(({ t, s }, i) => {
+  lines.slice(-100).forEach(({ t, s }, i) => {
     if (t.indexOf('Press any key') > -1 && i < lines.length - 1) {
       return;
     }
@@ -103,7 +103,8 @@ var core = /*eslint-disable-line*/ {
       }
     } else {
       if (text.length <= 1) {
-        return cb();
+        cb && cb();
+        return;
       } else {
         addLine(text);
       }
@@ -113,7 +114,7 @@ var core = /*eslint-disable-line*/ {
       addLine();
       addLine('&nbsp&nbsp&nbsp&nbsp&nbspPress any key to continue...');
       catcher.setK(() => {
-        cb();
+        cb && cb();
         resolve();
       });
     });
@@ -143,7 +144,7 @@ var core = /*eslint-disable-line*/ {
         ctr++;
       });
       addLine(sep, 'choiceStyle');
-      catcher.setK(key => {
+      catcher.setK(async key => {
         const choice = actualChoices[key - 1];
         if (choice) {
           lastChooseNodesSelected.push(choice.text);
@@ -151,7 +152,7 @@ var core = /*eslint-disable-line*/ {
           addLine();
           addLine(choice.text, 'chosenStyle');
           addLine();
-          choice.cb();
+          await choice.cb();
           resolve();
         }
       });

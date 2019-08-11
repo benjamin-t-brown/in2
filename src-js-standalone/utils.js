@@ -9,24 +9,24 @@
 /* global player, core, stylize, glob_showRoomChoices, glob_setupRoom, glob_initRooms */
 
 // let randomSeed = 123456;
-// var glob_random = () => {
+// let glob_random = () => {
 //   let x = Math.sin(randomSeed++) * 10000;
 //   return x - Math.floor(x);
 // };
 
-var glob_random = () => {
+let glob_random = () => {
   return Math.random();
 };
 
-var glob_pctChance = pct => {
+let glob_pctChance = pct => {
   return pct / 100 > glob_random();
 };
 
-var glob_oneOf = arr => {
+let glob_oneOf = arr => {
   return arr[Math.floor(glob_random() * arr.length)] || null;
 };
 
-var glob_dirToOffset = dir => {
+let glob_dirToOffset = dir => {
   let [x, y] = {
     n: [0, -1],
     s: [0, 1],
@@ -36,11 +36,11 @@ var glob_dirToOffset = dir => {
   return { x, y };
 };
 
-var glob_getWith2dFrom1dArr = (map, width, x, y) => {
+let glob_getWith2dFrom1dArr = (map, width, x, y) => {
   return map[y * width + x] || {};
 };
 
-var glob_bfs = (map, { startingNode, cb, conditionCb }) => {
+let glob_bfs = (map, { startingNode, cb, conditionCb }) => {
   map.forEach(node => {
     node.v = false;
     node.parent = null;
