@@ -69,7 +69,7 @@ exports._core = {
     }
   },
 
-  say(text, cb) {
+  async say(text, cb) {
     this.centerAtActiveNode();
     if (typeof text === 'object') {
       if (text.length === 1) {
@@ -82,7 +82,8 @@ exports._core = {
       }
     } else {
       if (text.length <= 1) {
-        return cb();
+        cb && cb();
+        return;
       } else {
         _console_log(text);
       }
@@ -94,11 +95,14 @@ exports._core = {
       }, 1);
       return;
     }
-    _console_log();
-    _console_log('&nbsp&nbsp&nbsp&nbsp&nbspPress any key to continue...');
-    this.catcher.setKeypressEvent(() => {
-      expose.get_state('player-area').remove_line();
-      cb();
+    return new Promise(resolve => {
+      _console_log();
+      //_console_log('&nbsp&nbsp&nbsp&nbsp&nbspPress any key to continue...');
+      this.catcher.setKeypressEvent(() => {
+        //expose.get_state('player-area').remove_line();
+        cb && cb();
+        resolve();
+      });
     });
   },
 
@@ -131,15 +135,15 @@ exports._core = {
         ctr++;
       });
       _console_log('---------');
-      this.catcher.setKeypressEvent(key => {
+      this.catcher.setKeypressEvent(async key => {
         const choice = actual_choices[key - 1];
         if (choice) {
           last_choose_nodes_selected.push(choice.text);
           this.catcher.setKeypressEvent(() => {});
-          choice.cb();
           _console_log();
           _console_log(choice.text);
           _console_log();
+          await choice.cb();
           disable_next_say_wait = false;
           resolve();
         }

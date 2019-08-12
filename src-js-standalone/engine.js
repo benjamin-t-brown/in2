@@ -175,6 +175,8 @@ var engine = {
   },
 };
 
+let glob_spawnItemInZone = (itemName, zone) => {};
+
 var debug = /*eslint-disable-line no-unused-vars*/ {
   showMap() {
     let html = `<div style="margin:10px">`;

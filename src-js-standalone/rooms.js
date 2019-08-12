@@ -14,6 +14,7 @@ glob_dirToOffset,
 glob_oneOf,
 glob_getPlayerLocation,
 glob_getMapNodeAdj,
+glob_getMapNodeFromRoomName,
 */
 
 let usedRooms = [];
@@ -41,19 +42,28 @@ let glob_generateRoom = zone => {
   };
 };
 
-async function glob_enterRoom(node) {
+let glob_setPlayerAtPreviousRoom = () => {
+  let playerLocation = glob_getPlayerLocation();
+  let lastRoomName = player.get('lastIN2f');
+  let node = glob_getMapNodeFromRoomName(lastRoomName);
+  playerLocation.x = node.x;
+  playerLocation.y = node.y;
+  player.set('nextFile', lastRoomName);
+};
+
+let glob_enterRoom = async node => {
   let {
     room: { visited, desc, roomName },
   } = node;
   let header = '-- ' + roomName.toUpperCase() + ' --<br/><br/>';
   if (visited) {
-    core.say(header + desc);
+    core.say(header + `You've come back to the ${roomName}`);
   } else {
     await core.say(header + desc);
   }
   node.room.visited = true;
   await glob_showRoomChoices(node);
-}
+};
 
 let glob_showRoomChoices = async node => {
   let directions = {
@@ -108,7 +118,7 @@ let ROOMS_BY_ZONE = {
       `You enter a large dome of a room, the lights above shining brightly such that you shade your eyes to see.  It appears you have walked into the markets.  Stalls and stations for the various vendors who pass through the station are lined in neat rows in the center.  Some have their advertisements and decorations still deployed, their owners having not bothered to remove them on the previous day.  It is eerie to be in this room without anybody in it.  Anything could jump out at you from inside one of the many hiding places here.`,
     ],
     overlook: [
-      `A vast glass-panel overlooks the expanse of space.  It appears that this room's sole purpose was for scenery.  You cannot see much though, the solar-tinted windows block most of the harmful light in space.`,
+      `A vast, glass panel overlooks the expanse of space.  It appears that this room's sole purpose was for scenery.  You cannot see much though, the solar-tinted windows block most of the harmful light in space.`,
     ],
     tavern: [
       `The smell of alcohol wrinkles your nose.  This is very clearly the tavern.  Upturned, wooden stools and tables are scattered across the floor.  Most of the drinks that had decorated the shelves behind the bar now lay shattered on the ground, leaving a dampness in the carbon-carpeted flooring.  You cannot help but think: what a waste...`,
