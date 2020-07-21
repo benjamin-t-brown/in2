@@ -14,7 +14,7 @@ const App = props => (
   </ThemeProvider>
 );
 
-Main.render = function() {
+Main.render = function () {
   ReactDOM.render(<App />, container);
 };
 Main.render();

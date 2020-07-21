@@ -63,7 +63,7 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-dom-factories": "^1.0.2",
-    "react-jss": "^8.6.1",
+    "react-jss": "^10.3.0",
     "recompose": "^0.30.0"
   },
   "devDependencies": {
@@ -81,7 +81,7 @@
     "concurrently": "^4.1.1",
     "cross-env": "^5.2.0",
     "eslint": "^5.16.0",
-    "eslint-config-prettier": "^6.0.0",
+    "eslint-config-prettier": "^6.4.0",
     "eslint-config-react-app": "^4.0.1",
     "eslint-plugin-babel": "^5.3.0",
     "eslint-plugin-flowtype": "^3.10.1",
@@ -92,8 +92,8 @@
     "eslint-plugin-react": "^7.13.0",
     "eslint-plugin-react-hooks": "^1.6.0",
     "mocha": "^6.1.4",
-    "prettier": "^1.18.2",
-    "terser": "^4.0.0",
+    "prettier": "^2.0.5",
+    "terser": "^4.8.0",
     "uglifycss": "0.0.29",
     "webpack": "^4.31.0",
     "webpack-cli": "^3.3.2",

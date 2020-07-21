@@ -59,13 +59,15 @@ exports._core = {
     const active_node_id = exports.player().get('curIN2n');
     const active_file_name = exports.player().get('curIN2f');
     if (active_node_id) {
-      expose.get_state('file-browser').loadFileExternal(active_file_name, () => {
-        const elem = document.getElementById(active_node_id);
-        if (elem) {
-          board.centerOnNode(active_node_id);
-          $('#' + active_node_id).css('outline', '4px solid green');
-        }
-      });
+      expose
+        .get_state('file-browser')
+        .loadFileExternal(active_file_name, () => {
+          const elem = document.getElementById(active_node_id);
+          if (elem) {
+            board.centerOnNode(active_node_id);
+            $('#' + active_node_id).css('outline', '4px solid green');
+          }
+        });
     }
   },
 
@@ -97,9 +99,9 @@ exports._core = {
     }
     return new Promise(resolve => {
       _console_log();
-      //_console_log('&nbsp&nbsp&nbsp&nbsp&nbspPress any key to continue...');
+      _console_log('&nbsp&nbsp&nbsp&nbsp&nbspPress any key to continue...');
       this.catcher.setKeypressEvent(() => {
-        //expose.get_state('player-area').remove_line();
+        expose.get_state('player-area').remove_line();
         cb && cb();
         resolve();
       });
@@ -115,7 +117,7 @@ exports._core = {
       }
       _console_log('---------');
       const actual_choices = choices.filter(choice => {
-        if (choice.condition()) {
+        if (choice.c()) {
           return true;
         } else {
           return false;
@@ -123,7 +125,7 @@ exports._core = {
       });
       if (last_choose_node_id === node_id) {
         // actual_choices = actual_choices.filter( ( choice ) => {
-        // 	return last_choose_nodes_selected.indexOf( choice.text ) === -1;
+        // 	return last_choose_nodes_selected.indexOf( choice.t ) === -1;
         // } );
       } else {
         last_choose_node_id = node_id;
@@ -131,17 +133,17 @@ exports._core = {
       }
       let ctr = 1;
       actual_choices.forEach(choice => {
-        _console_log('  ' + ctr + '.) ' + choice.text);
+        _console_log('  ' + ctr + '.) ' + choice.t);
         ctr++;
       });
       _console_log('---------');
       this.catcher.setKeypressEvent(async key => {
         const choice = actual_choices[key - 1];
         if (choice) {
-          last_choose_nodes_selected.push(choice.text);
+          last_choose_nodes_selected.push(choice.t);
           this.catcher.setKeypressEvent(() => {});
           _console_log();
-          _console_log(choice.text);
+          _console_log(choice.t);
           _console_log();
           await choice.cb();
           disable_next_say_wait = false;
@@ -207,31 +209,31 @@ exports._player = {
   },
 };
 
-exports.init = function(canvas_id, cb) {
+exports.init = function (canvas_id, cb) {
   exports._core.init();
   exports._core.catcher.enable();
   exports._player.init();
   cb();
 };
 
-exports.core = function() {
+exports.core = function () {
   return exports._core;
 };
 
-exports.player = function() {
+exports.player = function () {
   return exports._player;
 };
 
-exports.disable = function() {
+exports.disable = function () {
   exports._core.catcher.disable();
 };
 
-exports.enable = function() {
+exports.enable = function () {
   exports._core.catcher.enable();
 };
 
 function evalInContext(js, context) {
-  return function() {
+  return function () {
     return eval(js); //eslint-disable-line no-eval
   }.call(context);
 }
@@ -239,11 +241,10 @@ function evalInContext(js, context) {
 const postfix = `
 player = {...player, ...exports._player};
 core = {...core, ...exports._core};
-init();
 `;
 
 let standalone = '';
-exports.runFile = async function(file) {
+exports.runFile = async function (file) {
   _console_log('Success!');
   _console_log('');
   console.log('fetching standalone file');

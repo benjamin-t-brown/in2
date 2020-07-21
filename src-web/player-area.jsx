@@ -129,11 +129,13 @@ module.exports = class PlayerArea extends expose.Component {
               this.hide();
             } else if (ev.target.className === 'player-error') {
               var arr = ev.target;
-              expose.get_state('file-browser').loadFileExternal(arr.title, () => {
-                var id = arr.id.slice(6);
-                expose.get_state('board').centerOnNode(id);
-                $('#' + id).addClass('item-error');
-              });
+              expose
+                .get_state('file-browser')
+                .loadFileExternal(arr.title, () => {
+                  var id = arr.id.slice(6);
+                  expose.get_state('board').centerOnNode(id);
+                  $('#' + id).addClass('item-error');
+                });
             } else {
               setTimeout(() => {
                 core._core.catcher.onMouseDown(ev);
@@ -142,6 +144,9 @@ module.exports = class PlayerArea extends expose.Component {
           }
           ev.stopPropagation();
           ev.nativeEvent.stopImmediatePropagation();
+        },
+        onWheel: ev => {
+          ev.stopPropagation();
         },
         onMouseEnter: () => {
           //$('#diagram-parent').panzoom('disable');

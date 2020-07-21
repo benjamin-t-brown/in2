@@ -10,12 +10,16 @@ const COMPILER_OUT = __dirname + '/../src-compile/out';
 
 let config;
 try {
-  config = JSON.parse(fs.readFileSync(__dirname + '/../config.json').toString());
+  config = JSON.parse(
+    fs.readFileSync(__dirname + '/../config.json').toString()
+  );
 } catch (e) {
   console.log(
     '[WARN] Using config.template.js instead of config.js.  Copy and replace with your configs.'
   );
-  config = JSON.parse(fs.readFileSync(__dirname + '/../config.template.json').toString());
+  config = JSON.parse(
+    fs.readFileSync(__dirname + '/../config.template.json').toString()
+  );
 }
 
 console.log('[CONFIG]', config);
@@ -31,15 +35,15 @@ if (argv.cpp) {
 const PORT = 8888;
 
 http_server.start(PORT, __dirname + '/../dist/');
-process.on('SIGINT', function() {
+process.on('SIGINT', function () {
   console.log('SIGINT');
   process.exit();
 });
-process.on('SIGTERM', function() {
+process.on('SIGTERM', function () {
   console.log('SIGTERM');
   process.exit();
 });
-process.on('exit', function() {
+process.on('exit', function () {
   process.stdout.write('Bye\n');
 });
 
@@ -79,7 +83,8 @@ function on_exec_compiled(resp, cb, err, stdout) {
 
 //Compile a specific list of files
 http_server.post('compile', (obj, resp, data) => {
-  const cmd = `cd ${COMPILER_DIR} && node compiler.js --files ` + data.files.join(',');
+  const cmd =
+    `cd ${COMPILER_DIR} && node compiler.js --files ` + data.files.join(',');
   console.log(cmd);
   exec(
     cmd,
@@ -108,7 +113,9 @@ http_server.get('compile', (obj, resp) => {
       on_exec_compiled.bind(null, resp, (err, ret) => {
         if (ret.success) {
           ret.file = fs
-            .readFileSync(`${COMPILER_OUT}/${obj.event_args[0]}.compiled.${extension}`)
+            .readFileSync(
+              `${COMPILER_OUT}/${obj.event_args[0]}.compiled.${extension}`
+            )
             .toString();
         }
         http_server.reply(resp, {
@@ -203,7 +210,10 @@ http_server.get('standalone', (obj, resp) => {
       .toString();
     for (let i = 0; i < config.additionalPaths.length; i++) {
       standalone +=
-        '\n' + fs.readFileSync(__dirname + '/../' + config.additionalPaths[i]).toString();
+        '\n' +
+        fs
+          .readFileSync(__dirname + '/../' + config.additionalPaths[i])
+          .toString();
     }
     http_server.reply(resp, {
       err: null,

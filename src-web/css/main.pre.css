@@ -58,11 +58,11 @@ body {
 .file-delete {
   background-color: transparent;
   color: red;
-  font-size: 10px;
   font-weight: bold;
   text-align: center;
   padding: 5px;
   cursor: pointer;
+  font-family: monospace;
 }
 
 .file-delete:hover {
@@ -78,6 +78,10 @@ body {
 .context-button:hover {
   background-color: $css.colors.PRIMARY;
   color: $css.colors.TEXT_LIGHT;
+}
+
+.item-content {
+  pointer-events: none;
 }
 
 .item-error {
@@ -382,6 +386,7 @@ body {
   position: absolute;
   top: -10px;
   left: 0;
+  pointer-events: none;
 }
 
 .anchor-from {
@@ -390,6 +395,7 @@ body {
   position: absolute;
   bottom: 0;
   left: 0;
+  pointer-events: none;
 }
 
 .jtk-hover {
@@ -408,9 +414,29 @@ body {
   text-align: center;
   cursor: pointer;
   color: $css.colors.TEXT_LIGHT;
+  border-radius: 5px;
+  border: 1px solid $css.colors.TEXT_LIGHT;
+  line-height: 1.1;
 }
 
 .confirm-button:hover {
+  background-color: rgb( 50%, 50%, 50%);
+}
+
+.confirm-button-secondary {
+  background-color: $css.colors.SECONDARY;
+  padding: 5px;
+  width: 80px;
+  margin: 5px;
+  text-align: center;
+  cursor: pointer;
+  color: $css.colors.TEXT_LIGHT;
+  border-radius: 5px;
+  border: 1px solid $css.colors.TEXT_LIGHT;
+  line-height: 1.1;
+}
+
+.confirm-button-secondary:hover {
   background-color: rgb( 50%, 50%, 50%);
 }
 
@@ -422,6 +448,9 @@ body {
   text-align: center;
   cursor: pointer;
   color: $css.colors.TEXT_LIGHT;
+  border-radius: 5px;
+  border: 1px solid $css.colors.TEXT_LIGHT;
+  line-height: 1.1;
 }
 
 .cancel-button:hover {

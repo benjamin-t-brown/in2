@@ -44,7 +44,9 @@ class Context extends expose.Component {
     for (var i in this.props.cbs) {
       var name = i.split(/(?=[A-Z])/).join(' ');
       name = name.slice(0, 1).toUpperCase() + name.slice(1);
-      elems.push(this.renderItem(name, this.props.cbs[i].bind(null, this.props.node)));
+      elems.push(
+        this.renderItem(name, this.props.cbs[i].bind(null, this.props.node))
+      );
     }
 
     if (elems.length === 0) {
@@ -73,7 +75,7 @@ window.addEventListener('click', () => {
   exp.hide();
 });
 
-exp.show = function(x, y, node, file, cbs) {
+exp.show = function (x, y, node, file, cbs) {
   ReactDOM.render(
     React.createElement(Context, {
       visible: true,
@@ -89,7 +91,7 @@ exp.show = function(x, y, node, file, cbs) {
   );
 };
 
-exp.hide = function() {
+exp.hide = function () {
   ReactDOM.render(
     React.createElement(Context, {
       visible: false,
@@ -98,7 +100,7 @@ exp.hide = function() {
   );
 };
 
-exp.show_context_menu = function(board, elem) {
+exp.show_context_menu = function (board, elem) {
   if (utils.is_ctrl()) {
     return;
   }
@@ -108,59 +110,59 @@ exp.show_context_menu = function(board, elem) {
   var file_node = board.getNode(elem.id);
   if (file_node.type !== 'next_file' && board.nodeCanHaveChild(file_node)) {
     if (file_node.type === 'choice') {
-      cbs.linkNode = function(parent) {
+      cbs.linkNode = function (parent) {
         this.enterLinkMode(parent);
       }.bind(board);
-      cbs.createTextChoiceNode = function(parent) {
+      cbs.createTextChoiceNode = function (parent) {
         this.addNode(parent, 'choice_text');
       }.bind(board);
-      cbs.createConditionalChoiceNode = function(parent) {
+      cbs.createConditionalChoiceNode = function (parent) {
         var added_node = this.addNode(parent, 'choice_conditional', 'true;');
         this.addNode(added_node, 'choice_text');
       }.bind(board);
     } else if (file_node.type === 'choice_conditional') {
-      cbs.linkNode = function(parent) {
+      cbs.linkNode = function (parent) {
         this.enterLinkMode(parent);
       }.bind(board);
-      cbs.createTextChoiceNode = function(parent) {
+      cbs.createTextChoiceNode = function (parent) {
         this.addNode(parent, 'choice_text');
       }.bind(board);
     } else if (file_node.type === 'switch') {
-      cbs.linkNode = function(parent) {
+      cbs.linkNode = function (parent) {
         this.enterLinkMode(parent);
       }.bind(board);
-      cbs.createSwitchConditionalNode = function(parent) {
+      cbs.createSwitchConditionalNode = function (parent) {
         this.addNode(parent, 'switch_conditional', `player.get('something')`);
       }.bind(board);
     } else {
-      cbs.linkNode = function(parent) {
+      cbs.linkNode = function (parent) {
         this.enterLinkMode(parent);
       }.bind(board);
-      cbs.createTextNode = function(parent) {
+      cbs.createTextNode = function (parent) {
         this.addNode(parent, 'text');
       }.bind(board);
-      cbs.createChoiceNode = function(parent) {
+      cbs.createChoiceNode = function (parent) {
         this.addNode(parent, 'choice');
       }.bind(board);
-      cbs.createPassFailNode = function(parent) {
+      cbs.createPassFailNode = function (parent) {
         this.addPassFailNode(parent);
       }.bind(board);
-      cbs.createActionNode = function(parent) {
+      cbs.createActionNode = function (parent) {
         this.addNode(parent, 'action', ``);
       }.bind(board);
-      cbs.createChunkNode = function(parent) {
+      cbs.createChunkNode = function (parent) {
         this.addNode(parent, 'chunk', ``);
       }.bind(board);
-      cbs.createSwitchNode = function(parent) {
+      cbs.createSwitchNode = function (parent) {
         this.addSwitchNode(parent);
       }.bind(board);
-      cbs.createTriggerNode = function(parent) {
+      cbs.createTriggerNode = function (parent) {
         this.addNode(parent, 'trigger', ``);
       }.bind(board);
-      cbs.createDeferNode = function(parent) {
+      cbs.createDeferNode = function (parent) {
         this.addNode(parent, 'defer', `engine.defer();`);
       }.bind(board);
-      cbs.createNextFileNode = function(parent) {
+      cbs.createNextFileNode = function (parent) {
         dialog.show_input_with_select(
           expose.get_state('file-browser').file_list,
           null,

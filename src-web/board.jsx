@@ -11,31 +11,39 @@ const jsPlumb = window.jsPlumb;
 const BOARD_SIZE_PIXELS = 6400;
 
 export const getNodeId = () => {
-  let id = utils.random_id(6);
-  while (window.id) {
-    id = utils.random_id(6);
-  }
+  let id;
+  do {
+    id = utils.random_id(3);
+  } while (document.getElementById(id));
   return id;
 };
 
-window.on_node_click = function(elem) {
+window.on_node_click = function (elem) {
   console.log('Click Event Not Overwritten!', elem);
 };
 
-window.on_node_unclick = function(elem) {
+window.on_node_unclick = function (elem) {
   console.log('Unclick Event Not Overwritten!', elem);
 };
 
-window.on_node_dblclick = function(elem) {
+window.on_node_dblclick = function (elem) {
   console.log('DBLClick Event Not Overwritten!', elem);
 };
 
-window.on_node_rclick = function(elem) {
+window.on_node_rclick = function (elem) {
   console.log('RClick Event Not Overwritten!', elem);
 };
 
-window.on_delete_click = function(elem) {
+window.on_delete_click = function (elem) {
   console.log('DeleteClick Event Not Overwritten!', elem);
+};
+
+window.on_node_mouseover = function (elem) {
+  console.log('MouseOver Event Not Overwritten!', elem);
+};
+
+window.on_node_mouseout = function (elem) {
+  console.log('MouseOut Event Not Overwritten!', elem);
 };
 
 class Board extends expose.Component {
@@ -163,7 +171,9 @@ class Board extends expose.Component {
           file_node.content,
           content => {
             file_node.content = content;
-            document.getElementById(file_node.id).children[0].innerHTML = content;
+            document.getElementById(
+              file_node.id
+            ).children[0].innerHTML = content;
             this.buildDiagram();
             this.saveFile();
           }
@@ -179,7 +189,9 @@ class Board extends expose.Component {
           content => {
             dialog.set_shift_req(false);
             file_node.content = content;
-            document.getElementById(file_node.id).children[0].innerHTML = content;
+            document.getElementById(
+              file_node.id
+            ).children[0].innerHTML = content;
             this.buildDiagram();
             this.saveFile();
           },
@@ -200,6 +212,19 @@ class Board extends expose.Component {
 
     this.onNodeRClick = window.on_node_rclick = elem => {
       context.show_context_menu(this, elem);
+    };
+
+    this.onNodeMouseOver = window.on_node_mouseover = elem => {
+      const node = this.getNode(elem.id);
+      expose.set_state('status-bar', {
+        hoverText: `Double click to edit '${node.type}' node.`,
+      });
+    };
+
+    this.onNodeMouseOut = window.on_node_mouseout = () => {
+      expose.set_state('status-bar', {
+        hoverText: '',
+      });
     };
 
     this.onConnRClick = (params, ev) => {
@@ -262,14 +287,27 @@ class Board extends expose.Component {
         overlays: [['Arrow', { location: 0.6, width: 20, length: 20 }]],
       });
       connection.bind('contextmenu', this.onConnRClick);
+      connection.bind('mouseover', () => {
+        expose.set_state('status-bar', {
+          hoverText: 'Right click to delete this link.',
+        });
+      });
+      connection.bind('mouseout', () => {
+        expose.set_state('status-bar', {
+          hoverText: '',
+        });
+      });
     };
 
     this.centerOnNode = nodeId => {
       const n = this.getNode(nodeId);
       if (n) {
-        const area = document.getElementById('player-area').getBoundingClientRect();
+        const area = document
+          .getElementById('player-area')
+          .getBoundingClientRect();
         const node = document.getElementById(nodeId).getBoundingClientRect();
-        this.offsetX = parseInt(n.left) - (area.width / 2 - 260) - node.width / 2;
+        this.offsetX =
+          parseInt(n.left) - (area.width / 2 - 260) - node.width / 2;
         this.offsetY = parseInt(n.top) - area.height / 2 - node.height / 2;
         //const lastZoom = this.zoom;
         this.zoom = 1;
@@ -411,7 +449,7 @@ class Board extends expose.Component {
     this.expose('board');
   }
 
-  componentWillReceiveProps(props) {
+  UNSAFE_componentWillReceiveProps(props) {
     this.file = props.file;
   }
 
@@ -490,6 +528,9 @@ class Board extends expose.Component {
   }
 
   enterLinkMode(parent) {
+    expose.set_state('status-bar', {
+      isInLinkMode: true,
+    });
     setTimeout(() => {
       this.linkNode = parent;
       this.diagramContainer.current.class =
@@ -500,6 +541,9 @@ class Board extends expose.Component {
     this.linkNode = false;
     this.diagramContainer.current.class =
       'no-drag movable ' + this.props.classes.diagramArea;
+    expose.set_state('status-bar', {
+      isInLinkMode: false,
+    });
   }
 
   getNode(id) {
@@ -538,7 +582,10 @@ class Board extends expose.Component {
   getLinkIndex(from_id, to_id) {
     if (this.file) {
       for (let i in this.file.links) {
-        if (this.file.links[i].from === from_id && this.file.links[i].to === to_id) {
+        if (
+          this.file.links[i].from === from_id &&
+          this.file.links[i].to === to_id
+        ) {
           return i;
         }
       }
@@ -662,7 +709,11 @@ class Board extends expose.Component {
   }
 
   addPassFailNode(parent) {
-    let node = this.addNode(parent, 'pass_fail', 'Math.random() > 0.5 ? true : false;');
+    let node = this.addNode(
+      parent,
+      'pass_fail',
+      'Math.random() > 0.5 ? true : false;'
+    );
     let idPass = getNodeId();
     let idFail = getNodeId();
     let parentElem = document.getElementById(parent.id);
@@ -786,13 +837,15 @@ class Board extends expose.Component {
       `onmouseup="on_node_unclick(${node.id})" ` +
       `ondblclick="on_node_dblclick(${node.id})" ` +
       `oncontextmenu="on_node_rclick(${node.id})" ` +
+      `onmouseenter="on_node_mouseover(${node.id})" ` +
+      `onmouseout="on_node_mouseout(${node.id})" ` +
       `>` +
       `<div class="item-content" ${content_style}><span class="no-select">${node.content}</span></div>` +
       `<div class="anchor-to" id="${node.id}_to"></div>` +
       `<div class="anchor-from" id="${node.id}_from"></div>` +
       (node.type === 'root'
         ? ''
-        : `<div onclick="on_delete_click(${node.id})" class="item-delete" style="color:red;cursor:pointer;padding:5px;position:absolute;right:0px;top:0px" id="${node.id}_delete"><span class="no-select">X</span></div>`) +
+        : `<div onclick="on_delete_click(${node.id})" class="item-delete" style="font-family:monospace;color:red;cursor:pointer;padding:5px;position:absolute;right:0px;top:0px" id="${node.id}_delete"><span class="no-select">X</span></div>`) +
       `</div>`
     );
   }
@@ -830,7 +883,11 @@ class Board extends expose.Component {
           ref={this.diagramParent}
           className={classes.diagramParent}
         >
-          <div id="diagram" ref={this.diagram} className={'no-drag ' + classes.diagram} />
+          <div
+            id="diagram"
+            ref={this.diagram}
+            className={'no-drag ' + classes.diagram}
+          />
         </div>
       </div>
     );

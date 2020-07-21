@@ -119,7 +119,10 @@ function _parse_conditional(content, node, file) {
     if (content.trim() === 'ONCE') {
       conditional = conditional.replace('ONCE', `!player::get("${cond_id}")`);
     } else {
-      conditional = conditional.replace('ONCE', `!player::get("${cond_id}") && `);
+      conditional = conditional.replace(
+        'ONCE',
+        `!player::get("${cond_id}") && `
+      );
     }
     post_conditional = cond_id;
   }
@@ -144,11 +147,17 @@ class Compiler {
         } else {
           const child = children[0];
           if (node.content === 'Root') {
-            this.error(file.name, node.id, 'Root node has invalid character definition');
+            this.error(
+              file.name,
+              node.id,
+              'Root node has invalid character definition'
+            );
             return null;
           }
           characters.push(
-            `Character* ${_get_character_id(file)} = new Character(${node.content});\n`,
+            `Character* ${_get_character_id(file)} = new Character(${
+              node.content
+            });\n`,
             `characters::add_character(${_get_character_id(file)});\n`
           );
           return this.compileNode(child, file);
@@ -209,7 +218,10 @@ class Compiler {
         for (const i in children) {
           let condition_child = children[i];
           let text_child = null;
-          if (condition_child.type === 'test' || condition_child.type === 'choice_text') {
+          if (
+            condition_child.type === 'test' ||
+            condition_child.type === 'choice_text'
+          ) {
             text_child = condition_child;
             condition_child = null;
           } else if (condition_child.type === 'choice_conditional') {
@@ -306,7 +318,10 @@ class Compiler {
         });
         for (const i in children) {
           const child = children[i];
-          if (child.type !== 'switch_conditional' && child.type !== 'switch_default') {
+          if (
+            child.type !== 'switch_conditional' &&
+            child.type !== 'switch_default'
+          ) {
             this.error(
               file.name,
               node.id,
@@ -356,7 +371,9 @@ class Compiler {
               });
           }
           let content = child.content === 'default' ? 'true' : args.join(' ');
-          ret += `    ${Number(i) === 0 ? 'if' : 'else if'}(${content})\n    {\n`;
+          ret += `    ${
+            Number(i) === 0 ? 'if' : 'else if'
+          }(${content})\n    {\n`;
           if (post_conditional) {
             ret += `        player::set("${post_conditional}");\n`;
           }
@@ -541,7 +558,12 @@ class Compiler {
                 file
               );
             } else {
-              local_node = _create_text_node(content, id, { id: child_id }, file);
+              local_node = _create_text_node(
+                content,
+                id,
+                { id: child_id },
+                file
+              );
             }
 
             if (local_node.slice(0, 5) === 'error') {
@@ -580,7 +602,10 @@ class Compiler {
             `    ${_get_function_id(child.id, file)}(self);\n` +
             `};\n`;
           return (
-            first_ret + node_list.join('\n') + last_ret + this.compileNode(child, file)
+            first_ret +
+            node_list.join('\n') +
+            last_ret +
+            this.compileNode(child, file)
           );
         }
       },
@@ -692,7 +717,7 @@ std::vector<std::function<void(Character*)>> _talk_indices;
   }
 }
 
-const output_result = function(result, output_url) {
+const output_result = function (result, output_url) {
   fs.writeFile(__dirname + output_url, result, err => {
     if (err) {
       console.error('Error writing output ' + output_url, err);
@@ -702,7 +727,7 @@ const output_result = function(result, output_url) {
   });
 };
 
-const output_errors = function(errors) {
+const output_errors = function (errors) {
   console.log('-------------');
   errors.forEach((err, i) => {
     console.log(' ' + err);
@@ -715,7 +740,7 @@ const output_errors = function(errors) {
 };
 
 //the first file listed in "input_files" will be the entrypoint for the program
-const compile = function(input_files, output_url) {
+const compile = function (input_files, output_url) {
   let num_started = 0;
   let num_finished = 0;
   const c = new Compiler();
@@ -749,7 +774,10 @@ const compile = function(input_files, output_url) {
 
         let aggregated_result = c.getHeader(main_file_name);
         function_calls.forEach(({ id, file }) => {
-          aggregated_result += `void ${_get_function_id(id, file)}(Character*);\n`;
+          aggregated_result += `void ${_get_function_id(
+            id,
+            file
+          )}(Character*);\n`;
         });
         aggregated_result += '\nvoid build_characters()\n{\n';
         characters.forEach(str => {
@@ -767,7 +795,10 @@ const compile = function(input_files, output_url) {
         aggregated_result += '\n}' + body + c.getFooter(main_file_name);
         console.log();
         output_result(aggregated_result, output_url);
-        output_result(aggregated_result, '/../../Adventure/Content/Characters.cpp');
+        output_result(
+          aggregated_result,
+          '/../../Adventure/Content/Characters.cpp'
+        );
       }
     });
   });
@@ -777,7 +808,10 @@ const argv = require('minimist')(process.argv.slice(2));
 
 if (argv.file) {
   console.log('Compiling ' + argv.file + '...');
-  compile([__dirname + '/../save/' + argv.file], '/out/' + argv.file + '.compiled.cpp');
+  compile(
+    [__dirname + '/../save/' + argv.file],
+    '/out/' + argv.file + '.compiled.cpp'
+  );
 } else if (argv.files) {
   console.log('Compiling ' + argv.files + '...');
   const filelist = argv.files.split(',').map(filename => {

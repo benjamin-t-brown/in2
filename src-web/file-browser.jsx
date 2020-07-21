@@ -3,7 +3,6 @@ const css = require('css');
 const utils = require('utils');
 const expose = require('expose');
 const dialog = require('dialog');
-const $ = require('jquery');
 
 //This file represents the file browser on the right side of the screen.
 //It can:
@@ -26,11 +25,11 @@ module.exports = class FileBrowser extends expose.Component {
       check_all: false,
     };
 
-    this.onFileClick = function(filename) {
+    this.onFileClick = function (filename) {
       this.loadFile(filename);
     }.bind(this);
 
-    this.onFileCheckboxClick = function(filename, ev) {
+    this.onFileCheckboxClick = function (filename, ev) {
       if (filename === this.props.current_file_name) {
         return;
       }
@@ -78,7 +77,7 @@ module.exports = class FileBrowser extends expose.Component {
       expose.get_state('player-area').compile();
     };
 
-    this.onFileDoubleClick = function(filename) {
+    this.onFileDoubleClick = function (filename) {
       dialog.show_input(filename, name => {
         this.renameFile(filename, name);
       });
@@ -102,10 +101,13 @@ module.exports = class FileBrowser extends expose.Component {
       expose.get_state('board').pasteSelection();
     };
 
-    this.onDeleteClick = function(filename) {
-      dialog.show_confirm('Are you sure you want to delete "' + filename + '"?', () => {
-        this.deleteFile(filename);
-      });
+    this.onDeleteClick = function (filename) {
+      dialog.show_confirm(
+        'Are you sure you want to delete "' + filename + '"?',
+        () => {
+          this.deleteFile(filename);
+        }
+      );
     }.bind(this);
 
     this.handleFilterChange = ev => {
@@ -214,7 +216,7 @@ module.exports = class FileBrowser extends expose.Component {
       name: name,
       nodes: [
         {
-          id: utils.random_id(10),
+          id: utils.random_id(3),
           type: 'root',
           content: 'Root',
           top: '20px',
@@ -276,6 +278,7 @@ module.exports = class FileBrowser extends expose.Component {
             style: {
               display: 'flex',
               justifyContent: 'space-between',
+              width: '270px',
             },
           },
           React.createElement('input', {
@@ -292,13 +295,19 @@ module.exports = class FileBrowser extends expose.Component {
               className: 'file',
               onClick: this.onFileClick.bind(this, filename),
               onDoubleClick: this.onFileDoubleClick.bind(this, filename),
+              title: filename,
               style: {
                 backgroundColor:
-                  this.props.current_file_name === filename ? css.colors.SECONDARY : null,
-                width: '88%',
+                  this.props.current_file_name === filename
+                    ? css.colors.FG_NEUTRAL
+                    : null,
                 padding: '5px',
                 cursor: 'pointer',
                 color: css.colors.TEXT_LIGHT,
+                width: '240px',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'pre',
+                overflow: 'hidden',
               },
             },
             React.createElement(
@@ -347,6 +356,9 @@ module.exports = class FileBrowser extends expose.Component {
         onMouseLeave: () => {
           //$('#diagram-parent').panzoom('enable');
         },
+        onWheel: ev => {
+          ev.stopPropagation();
+        },
         style: {
           backgroundColor: css.colors.BG_NEUTRAL,
           overflowY: 'scroll',
@@ -368,7 +380,11 @@ module.exports = class FileBrowser extends expose.Component {
             className: 'confirm-button',
             onClick: this.onCompileFileClick,
           },
-          React.createElement('span', { className: 'no-select' }, 'Compile File')
+          React.createElement(
+            'span',
+            { className: 'no-select' },
+            'Compile File'
+          )
         ),
         React.createElement(
           'div',
@@ -376,7 +392,11 @@ module.exports = class FileBrowser extends expose.Component {
             className: 'confirm-button',
             onClick: this.onCompileSelectedClick,
           },
-          React.createElement('span', { className: 'no-select' }, 'Compile Selected')
+          React.createElement(
+            'span',
+            { className: 'no-select' },
+            'Compile Selected'
+          )
         ),
         React.createElement(
           'div',
@@ -410,24 +430,14 @@ module.exports = class FileBrowser extends expose.Component {
         'div',
         {
           style: {
-            height: '34px',
             display: 'flex',
             justifyContent: 'flex-start',
           },
         },
-        React.createElement('input', {
-          type: 'checkbox',
-          checked: this.state.check_all,
-          onChange: this.onCheckAllClick,
-          style: {
-            marginTop: '6px',
-            padding: '3px',
-          },
-        }),
         React.createElement(
           'div',
           {
-            className: 'confirm-button',
+            className: 'confirm-button-secondary',
             onClick: this.onCreateClick,
           },
           React.createElement('span', { className: 'no-select' }, 'New File')
@@ -435,7 +445,7 @@ module.exports = class FileBrowser extends expose.Component {
         React.createElement(
           'div',
           {
-            className: 'confirm-button',
+            className: 'confirm-button-secondary',
             onClick: this.onCopyClick,
           },
           React.createElement('span', { className: 'no-select' }, 'Copy')
@@ -443,12 +453,32 @@ module.exports = class FileBrowser extends expose.Component {
         React.createElement(
           'div',
           {
-            className: 'confirm-button',
+            className: 'confirm-button-secondary',
             onClick: this.onPasteClick,
           },
           React.createElement('span', { className: 'no-select' }, 'Paste')
         )
       ),
+      <div
+        style={{
+          textAlign: 'center',
+          color: css.colors.TEXT_LIGHT,
+          textDecoration: 'underline',
+        }}
+      >
+        {this.props.current_file_name?.slice(0, -5) || '(None Selected)'}
+      </div>,
+      <div>
+        {React.createElement('input', {
+          type: 'checkbox',
+          checked: this.state.check_all,
+          onChange: this.onCheckAllClick,
+          style: {
+            marginTop: '6px',
+            padding: '3px',
+          },
+        })}
+      </div>,
       React.createElement(
         'div',
         {

@@ -17,14 +17,6 @@ env:
   browser: true
   mocha: true
 
-overrides:
-  - files: '**/*.test.js'
-    rules:
-      no-class-assign: 0
-      no-console: 0
-      no-unused-vars: 0
-      no-unused-expressions: 0
-
 rules:
   prettier/prettier:
     - 2

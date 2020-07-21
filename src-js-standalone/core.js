@@ -1,72 +1,14 @@
 /**
  * Core File for IN2 execution.
  *
- * Any "var" in this file is on purpose hoisted.  The Style variables are supposed to
- * be hoisted into the window and accessed via window[nameStyle].
+ * Add overrides here.
  */
 
-let isDarkMode = true;
-var bodyStyle, textareaStyle, textStyle, choiceStyle, chosenStyle; //eslint-disable-line
-
-let setStyle = () => {
-  bodyStyle = {
-    'font-family': 'monospace',
-    'font-size': '16px',
-    margin: '0px',
-    'background-color': isDarkMode ? '#1D1E19' : '#CCC',
-  };
-  textareaStyle = {
-    'max-width': '600px',
-    'min-width': '600px',
-    'min-height': '100%',
-    'margin-left': 'auto',
-    'margin-right': 'auto',
-    'background-color': isDarkMode ? '#333' : '#EEE',
-    padding: '5px',
-  };
-  textStyle = {
-    color: isDarkMode ? '#BB8' : '#333',
-  };
-  choiceStyle = {
-    color: isDarkMode ? '#EEE' : '#111',
-  };
-  chosenStyle = {
-    color: isDarkMode ? '#BFB' : '#181',
-  };
+let addLine = text => {
+  console.log(text);
 };
 
-var stylize = style => {
-  let agg = '';
-  for (let i in style) {
-    agg += i + ':' + style[i] + ';';
-  }
-  return agg;
-};
-
-let lines = [];
-let render = () => {
-  let html = `<div style=${stylize(textareaStyle)}>`;
-  lines.slice(-100).forEach(({ t, s }, i) => {
-    if (t.indexOf('Press any key') > -1 && i < lines.length - 1) {
-      return;
-    }
-    html += `<p style="${stylize(window[s])}">${t}</p>`;
-  });
-  if (window.root) {
-    window.root.innerHTML = html + '</div>';
-    window.root.scrollTop = window.root.scrollHeight;
-  }
-};
-
-let addLine = (text, style) => {
-  lines.push({
-    t: `${(text || '').replace(/\n/g, '<br/>')}`,
-    s: style || 'textStyle',
-  });
-  render();
-};
-
-let catcher = new (function() {
+let catcher = new (function () {
   let cb = () => {};
   this.setK = _cb => (cb = _cb);
   window.addEventListener('keydown', ev => {
@@ -74,12 +16,6 @@ let catcher = new (function() {
       return;
     }
     cb(String.fromCharCode(ev.which));
-    if (ev.key === 'm' && !window.IN2) {
-      isDarkMode = !isDarkMode;
-      setStyle();
-      document.body.style = stylize(bodyStyle);
-      render();
-    }
   });
 })();
 
@@ -128,7 +64,7 @@ var core = /*eslint-disable-line*/ {
       }
       addLine(sep, 'choiceStyle');
       const actualChoices = choices.filter(choice => {
-        if (choice.condition()) {
+        if (choice.c()) {
           return true;
         } else {
           return false;
@@ -140,17 +76,17 @@ var core = /*eslint-disable-line*/ {
       }
       let ctr = 1;
       actualChoices.forEach(choice => {
-        addLine('<b>  ' + ctr + '.) ' + choice.text + '</b>', 'choiceStyle');
+        addLine('<b>  ' + ctr + '.) ' + choice.t + '</b>', 'choiceStyle');
         ctr++;
       });
       addLine(sep, 'choiceStyle');
       catcher.setK(async key => {
         const choice = actualChoices[key - 1];
         if (choice) {
-          lastChooseNodesSelected.push(choice.text);
+          lastChooseNodesSelected.push(choice.t);
           catcher.setK(() => {});
           addLine();
-          addLine(choice.text, 'chosenStyle');
+          addLine(choice.t, 'chosenStyle');
           addLine();
           await choice.cb();
           resolve();

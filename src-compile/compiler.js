@@ -14,23 +14,28 @@ const prettier = require('prettier');
 const CURRENT_NODE_VAR = 'curIN2n';
 const CURRENT_FILE_VAR = 'curIN2f';
 const LAST_FILE_VAR = 'lasIN2f';
-let includeDebugStatements = false;
+let includeDebugStatements = true;
 
 let config;
 try {
-  config = JSON.parse(fs.readFileSync(__dirname + '/../config.json').toString());
+  config = JSON.parse(
+    fs.readFileSync(__dirname + '/../config.json').toString()
+  );
 } catch (e) {
   console.log(
     '[WARN] Using config.template.js instead of config.js.  Copy and replace with your configs.'
   );
-  config = JSON.parse(fs.readFileSync(__dirname + '/../config.template.json').toString());
+  config = JSON.parse(
+    fs.readFileSync(__dirname + '/../config.template.json').toString()
+  );
 }
 let standalone = fs
   .readFileSync(__dirname + '/../' + config.standaloneCorePath)
   .toString();
 for (let i = 0; i < config.additionalPaths.length; i++) {
   standalone +=
-    '\n' + fs.readFileSync(__dirname + '/../' + config.additionalPaths[i]).toString();
+    '\n' +
+    fs.readFileSync(__dirname + '/../' + config.additionalPaths[i]).toString();
 }
 standalone = standalone.replace(/console\.log\((.*)\)/g, '');
 
@@ -91,7 +96,7 @@ class File {
 function _eval_content(content, params) {
   params = params || {};
   function evalInContext(js, context) {
-    return function() {
+    return function () {
       return eval(js); //eslint-disable-line no-eval
     }.call(context);
   }
@@ -106,6 +111,9 @@ function _eval_content(content, params) {
   window.addEventListener = () => {};
   window.IN2 = true;
   window.IN2COMPILER = true;
+  window.CURRENT_NODE_VAR = '${CURRENT_NODE_VAR}';
+  window.CURRENT_FILE_VAR = '${CURRENT_FILE_VAR}';
+  window.LAST_FILE_VAR = '${LAST_FILE_VAR}';
   var document = window.document = {};
   window.stylize = () => {};
   `;
@@ -121,7 +129,7 @@ function _eval_content(content, params) {
 
   const evalStr = `{${prefix}\n${standalone}\n${postfix}\n${content}\n}`;
   try {
-    evalInContext(evalStr, {});
+    // evalInContext(evalStr, {});
   } catch (e) {
     console.log('COULD NOT EVAL', content, e.stack);
     return 'error' + e;
@@ -150,9 +158,9 @@ function _create_text_node(content, id, child_id) {
   const ret =
     `// text\n` +
     `scope.${id} = () => {\n` +
-    `    player.set( '${CURRENT_NODE_VAR}', '${id}' );\n` +
+    `    player.set(CURRENT_NODE_VAR, '${id}');\n` +
     `    let text = \`${content}\`;\n` +
-    `    core.say( text, scope.${child_id} );\n` +
+    `    core.say(text, scope.${child_id});\n` +
     `};\n`;
   return ret;
 }
@@ -175,15 +183,15 @@ class Compiler {
         } else {
           const child = children[0];
           const ret =
-            `if( !id ){\n` +
+            `if(!id){\n` +
             `    scope.${child.id}();\n` +
             `}\n` +
             `else {\n` +
-            `    scope[ id ]();\n` +
+            `    scope[id]();\n` +
             `}\n`;
           return (
-            `files[ \`${file.name}\` ] = (id) => {\n` +
-            `player.set( '${CURRENT_FILE_VAR}', '${file.name}' );\n` +
+            `files[\`${file.name}\`] = id => {\n` +
+            `player.set(CURRENT_FILE_VAR, '${file.name}' );\n` +
             this.compileNode(child, file) +
             ret +
             `};\n`
@@ -250,7 +258,7 @@ class Compiler {
         let ret =
           `// ${node.type}\n` +
           `scope.${node.id} = () => {\n` +
-          `    player.set( '${CURRENT_NODE_VAR}', '${node.id}' );\n` +
+          `    player.set( CURRENT_NODE_VAR, '${node.id}' );\n` +
           `    let text = \`${node.content}\`;\n` +
           `    core.choose( text, '${node.id}', [` +
           ``;
@@ -258,7 +266,10 @@ class Compiler {
         for (let i in children) {
           let condition_child = children[i];
           let text_child = null;
-          if (condition_child.type === 'test' || condition_child.type === 'choice_text') {
+          if (
+            condition_child.type === 'test' ||
+            condition_child.type === 'choice_text'
+          ) {
             text_child = condition_child;
             condition_child = null;
           } else if (condition_child.type === 'choice_conditional') {
@@ -280,7 +291,9 @@ class Compiler {
             return null;
           }
           try {
-            let evaluationFailure = _eval_content(text_child.content, { quote: true });
+            let evaluationFailure = _eval_content(text_child.content, {
+              quote: true,
+            });
             if (evaluationFailure) {
               throw new Error(evaluationFailure.slice(5));
             }
@@ -306,10 +319,12 @@ class Compiler {
           nodes_to_compile.push(textChildChildren[0]);
           ret +=
             `{\n` +
-            `        text: \`${text_child.content}\`,\n` +
+            `        t: \`${text_child.content}\`,\n` +
             `        cb: scope.${textChildChildren[0].id},\n` +
-            `        condition: () => { ${
-              condition_child ? 'return ' + condition_child.content : 'return true;'
+            `        c: () => { ${
+              condition_child
+                ? 'return ' + condition_child.content
+                : 'return true;'
             } }\n` +
             `    },`;
           if (condition_child) {
@@ -363,7 +378,10 @@ class Compiler {
         ret += `scope.${node.id} = () => {\n`;
         for (let i in children) {
           const child = children[i];
-          if (child.type !== 'switch_conditional' && child.type !== 'switch_default') {
+          if (
+            child.type !== 'switch_conditional' &&
+            child.type !== 'switch_default'
+          ) {
             this.error(
               file.name,
               node.id,
@@ -393,9 +411,9 @@ class Compiler {
             );
             return null;
           }
-          ret += `    ${Number(i) === 0 ? 'if' : 'else if'}(${content})\n        scope.${
-            child2.id
-          }();\n`;
+          ret += `    ${
+            Number(i) === 0 ? 'if' : 'else if'
+          }(${content})\n        scope.${child2.id}();\n`;
           nodes_to_compile.push(child2);
         }
         ret += '}';
@@ -428,7 +446,7 @@ class Compiler {
         let ret =
           `// ${node.type}\n` +
           `scope.${node.id} = () => {\n` +
-          `    player.set( '${CURRENT_NODE_VAR}', '${node.id}' );\n` +
+          `    player.set( CURRENT_NODE_VAR, '${node.id}' );\n` +
           `    const condition = ( () => { return ${node.content} } )();\n` +
           ``;
         try {
@@ -468,14 +486,14 @@ class Compiler {
           if (child.type === 'pass_text') {
             ret +=
               `    if( condition ){\n` +
-              `        player.set( '${CURRENT_NODE_VAR}', '${child.id}' );\n` +
+              `        player.set( CURRENT_NODE_VAR, '${child.id}' );\n` +
               `        let text = \`${child.content}\`;\n` +
               `        core.say( text, scope.${child2.id} );\n` +
               `    }\n`;
           } else if (child.type === 'fail_text') {
             ret +=
               `    if( !condition ){\n` +
-              `        player.set( '${CURRENT_NODE_VAR}', '${child.id}' );\n` +
+              `        player.set( CURRENT_NODE_VAR, '${child.id}' );\n` +
               `        let text = \`${child.content}\`;\n` +
               `        core.say( text, scope.${child2.id} );\n` +
               `    }\n`;
@@ -609,7 +627,10 @@ class Compiler {
             `    scope.${child.id}();\n` +
             `};\n`;
           return (
-            first_ret + node_list.join('\n') + last_ret + this.compileNode(child, file)
+            first_ret +
+            node_list.join('\n') +
+            last_ret +
+            this.compileNode(child, file)
           );
         }
       },
@@ -676,7 +697,7 @@ class Compiler {
           const ret =
             `// defer\n` +
             `scope.${node.id} = async () => {\n` +
-            `    player.set('${CURRENT_NODE_VAR}', '${node.id}');\n` +
+            `    player.set(CURRENT_NODE_VAR, '${node.id}');\n` +
             `    await core.defer(${node.content});\n` +
             `    scope.${child.id}();\n` +
             `};\n`;
@@ -688,10 +709,10 @@ class Compiler {
         let ret =
           `// ${node.type}\n` +
           `scope.${node.id} = () => {\n` +
-          `    player.set("${LAST_FILE_VAR}", player.get("${CURRENT_FILE_VAR}"));` +
+          `    player.set(LAST_FILE_VAR, player.get(CURRENT_FILE_VAR));` +
           `    let key = \`${node.content}\`;\n` +
-          `    let func = files[ key ];\n` +
-          `    if( func ) {\n` +
+          `    let func = files[key];\n` +
+          `    if(func) {\n` +
           `        func();\n}`;
         if (includeDebugStatements) {
           ret +=
@@ -712,7 +733,12 @@ class Compiler {
     * IN2 Logic Tree File
     *
     * This file has been generated by an IN2 compiler.
-    */\n{\n/* global player, core, engine */\nconst files = {};\nconst scope = {};`;
+    */\n{\n/* global player, core, engine */
+const files = {};
+const scope = {};
+const CURRENT_NODE_VAR = '${CURRENT_NODE_VAR}';
+const CURRENT_FILE_VAR = '${CURRENT_FILE_VAR}';
+const LAST_FILE_VAR = '${LAST_FILE_VAR}';`;
   }
   //footer for entire file (not individual compiled files)
   getFooter(mainFileName) {
@@ -784,7 +810,7 @@ class Compiler {
   }
 }
 
-const output_result = function(result, output_url) {
+const output_result = function (result, output_url) {
   fs.writeFile(__dirname + '/' + output_url, result, err => {
     if (err) {
       console.error('Error writing output ' + output_url, err);
@@ -794,7 +820,7 @@ const output_result = function(result, output_url) {
   });
 };
 
-const output_errors = function(errors) {
+const output_errors = function (errors) {
   console.log('-------------');
   errors.forEach((err, i) => {
     console.log(' ' + err);
@@ -807,7 +833,7 @@ const output_errors = function(errors) {
 };
 
 //the first file listed in "input_files" will be the entrypoint for the program
-const compile = function(inputFiles, outputUrls) {
+const compile = function (inputFiles, outputUrls) {
   let numStarted = 0;
   let numFinished = 0;
   const c = new Compiler();
@@ -848,6 +874,7 @@ const compile = function(inputFiles, outputUrls) {
             parser: 'babel',
             singleQuote: true,
             trailingComma: 'es5',
+            arrowParens: 'avoid',
           });
         } catch (e) {
           console.error('PRETTIER FAILURE', e);
@@ -865,7 +892,10 @@ const argv = require('minimist')(process.argv.slice(2));
 
 if (argv.file) {
   console.log('Compiling ' + argv.file + '...');
-  compile([__dirname + '/../save/' + argv.file], ['/out/' + argv.file + '.compiled.js']);
+  compile(
+    [__dirname + '/../save/' + argv.file],
+    ['/out/' + argv.file + '.compiled.js']
+  );
 } else if (argv.files) {
   console.log('Compiling ' + argv.files + '...');
   const filelist = argv.files.split(',').map(filename => {
