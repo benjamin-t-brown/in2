@@ -34,7 +34,7 @@ body {
 }
 
 .linking {
-  cursor: crosshair
+  cursor: crosshair;
 }
 
 .player-error {
@@ -66,7 +66,7 @@ body {
 }
 
 .file-delete:hover {
-  background-color: #A00;
+  background-color: #a00;
 }
 
 .context-button {
@@ -88,13 +88,13 @@ body {
   outline: 4px solid red;
 }
 
-;
 .item-active {
   outline: 4px solid green;
 }
 
-;
-.item {}
+.item {
+  font-family: monospace;
+}
 
 .item-delete {
   background-color: transparent;
@@ -131,9 +131,11 @@ body {
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.SECONDARY;
-  width: 200px;
+  width: 250px;
   background-color: $css.colors.PRIMARY;
   color: $css.colors.TEXT_LIGHT;
+  word-break: break-word;
+  font-family: Arial;
 }
 
 .item-text:hover {
@@ -146,10 +148,13 @@ body {
   position: absolute;
   border: 1px solid $css.colors.PRIMARY;
   border-radius: 30px;
-  width: 200px;
+  width: 250px;
   background-color: $css.colors.SECONDARY;
   color: $css.colors.TEXT_LIGHT;
-	min-height: 10px;
+  min-height: 10px;
+  overflow: hidden;
+  word-break: break-word;
+  font-family: Arial;
 }
 
 .item-choice:hover {
@@ -163,8 +168,9 @@ body {
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.PRIMARY;
-  width: 200px;
+  width: 250px;
   color: $css.colors.TEXT_LIGHT;
+  font-family: Arial;
 }
 
 .item-choice_text:hover {
@@ -269,7 +275,7 @@ body {
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.PRIMARY;
-  width: 200px;
+  width: 25px;
   color: $css.colors.TEXT_LIGHT;
   min-height: 10px;
 }
@@ -285,9 +291,9 @@ body {
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.PRIMARY;
-  width: 200px;
+  width: 25px;
   color: $css.colors.TEXT_LIGHT;
-	min-height: 10px;
+  min-height: 10px;
 }
 
 .item-fail_text:hover {
@@ -327,7 +333,7 @@ body {
 }
 
 .item-trigger {
-  background-color:#967D00;
+  background-color: #967d00;
   padding: 8px;
   cursor: pointer;
   position: absolute;
@@ -420,7 +426,7 @@ body {
 }
 
 .confirm-button:hover {
-  background-color: rgb( 50%, 50%, 50%);
+  background-color: rgb(50%, 50%, 50%);
 }
 
 .confirm-button-secondary {
@@ -437,7 +443,7 @@ body {
 }
 
 .confirm-button-secondary:hover {
-  background-color: rgb( 50%, 50%, 50%);
+  background-color: rgb(50%, 50%, 50%);
 }
 
 .cancel-button {
@@ -454,17 +460,19 @@ body {
 }
 
 .cancel-button:hover {
-  background-color: rgb( 50%, 50%, 50%);
+  background-color: rgb(50%, 50%, 50%);
 }
 
-
-/* The animation code */
 @keyframes fade-in {
-    from {color: transparent;}
-    to {color: $css.colors.TEXT_LIGHT;}
+  from {
+    color: transparent;
+  }
+  to {
+    color: $css.colors.TEXT_LIGHT;
+  }
 }
 
 .new-player-text {
-	animation-name: fade-in;
-	animation-duration: 0.5s;
+  animation-name: fade-in;
+  animation-duration: 0.5s;
 }

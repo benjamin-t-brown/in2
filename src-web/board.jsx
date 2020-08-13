@@ -23,7 +23,7 @@ window.on_node_click = function (elem) {
 };
 
 window.on_node_unclick = function (elem) {
-  console.log('Unclick Event Not Overwritten!', elem);
+  console.log('Un-click Event Not Overwritten!', elem);
 };
 
 window.on_node_dblclick = function (elem) {
@@ -829,7 +829,7 @@ class Board extends expose.Component {
     ) {
       content_style = 'style="overflow:hidden;text-overflow:ellipsis"';
     }
-    let className = 'item-' + node.type;
+    let className = 'item item-' + node.type;
     return (
       `<div class="node ${className}" ` +
       `style="${style_str}" id="${node.id}" ` +

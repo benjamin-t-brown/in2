@@ -14,10 +14,12 @@ try {
   console.log(
     '[WARN] Using config.template.js instead of config.js.  Copy and replace with your configs.'
   );
-  config = JSON.parse(fs.readFileSync(__dirname + '/config.template.json').toString());
+  config = JSON.parse(
+    fs.readFileSync(__dirname + '/config.template.json').toString()
+  );
 }
 
-const _executeAsync = async function(cmd) {
+const _executeAsync = async function (cmd) {
   return new Promise(resolve => {
     console.log(cmd);
     const obj = shell.exec(
@@ -36,7 +38,7 @@ const env = Object.create(process.env);
 env.NPM_CONFIG_COLOR = 'always';
 
 const rules = {
-  'build-standalone': async function(cb) {
+  'build-standalone': async function (cb) {
     const index = fs.readFileSync(__dirname + '/' + config.standaloneIndexPath);
     const main = fs.readFileSync('src-compile/main.compiled.js');
 
@@ -45,7 +47,8 @@ const rules = {
       .toString();
     for (let i = 0; i < config.additionalPaths.length; i++) {
       standalone +=
-        '\n' + fs.readFileSync(__dirname + '/' + config.additionalPaths[i]).toString();
+        '\n' +
+        fs.readFileSync(__dirname + '/' + config.additionalPaths[i]).toString();
     }
 
     const script = '<script src="main.min.js"></script>';
@@ -108,13 +111,13 @@ const rules = {
     console.log('done');
     cb();
   },
-  'build-css': function(cb) {
+  'build-css': function (cb) {
     build_css(cb);
   },
 };
 const rule = argv._.shift();
 if (rules[rule]) {
-  rules[rule](function(error) {
+  rules[rule](function (error) {
     if (error) {
       return process.exit(error.code);
     } else {
@@ -131,7 +134,7 @@ function build_css(cb) {
   const pre_css_folder = './src-web/css/';
   const dest_css_filename = './dist/assets/main.css';
 
-  const _output_file = function(output) {
+  const _output_file = function (output) {
     console.log('pre.css output: ', dest_css_filename);
     fs.writeFile(dest_css_filename, output, err => {
       if (err) {
@@ -146,7 +149,7 @@ function build_css(cb) {
     });
   };
 
-  const _compile_file = function(pre_css_filename, _cb) {
+  const _compile_file = function (pre_css_filename, _cb) {
     console.log('pre.css build: ', pre_css_filename);
     fs.readFile(pre_css_filename, (err, data) => {
       if (err) {
@@ -159,11 +162,8 @@ function build_css(cb) {
           .map(line => {
             const m = line.match(/\$[^ ';]*/);
             if (m) {
-              const css_constiable = m[0];
-              const arr = css_constiable
-                .slice(1)
-                .split('.')
-                .slice(1);
+              const cssV = m[0];
+              const arr = cssV.slice(1).split('.').slice(1);
               let result = css;
               for (const i in arr) {
                 try {
@@ -178,7 +178,7 @@ function build_css(cb) {
                   process.exit(0);
                 }
               }
-              line = line.replace(css_constiable, result);
+              line = line.replace(cssV, result);
               return line;
             }
             return line;
@@ -190,21 +190,21 @@ function build_css(cb) {
   };
 
   fs.readdir(pre_css_folder, (err, files) => {
-    let numfiles = 0;
-    let numfilesparsed = 0;
+    let numFiles = 0;
+    let numFilesParsed = 0;
     let complete_output = '';
     files.forEach(file => {
       if (file.indexOf('pre.css') > -1) {
-        numfiles++;
+        numFiles++;
         _compile_file(pre_css_folder + file, output => {
-          numfilesparsed++;
+          numFilesParsed++;
           if (file === 'main.pre.css') {
             complete_output = output + '\n' + complete_output;
           } else {
             complete_output += '\n' + output;
           }
 
-          if (numfiles === numfilesparsed) {
+          if (numFiles === numFilesParsed) {
             _output_file(complete_output);
           }
         });

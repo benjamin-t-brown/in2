@@ -1,9 +1,9 @@
-var React = require('react');
-var expose = require('expose');
-var css = require('css');
-var utils = require('utils');
-var core = require('core');
-var $ = require('jquery');
+const React = require('react');
+const expose = require('expose');
+const css = require('css');
+const utils = require('utils');
+const core = require('core');
+const $ = require('jquery');
 
 module.exports = class PlayerArea extends expose.Component {
   constructor(props) {
@@ -12,6 +12,7 @@ module.exports = class PlayerArea extends expose.Component {
 
     this.show = () => {
       this.last_index_shown = -1;
+      core.enable();
       this.setState({
         visible: true,
       });
@@ -40,8 +41,7 @@ module.exports = class PlayerArea extends expose.Component {
     };
 
     this.remove_line = () => {
-      var arr = this.state.text;
-      arr = arr.slice(0, -1);
+      const arr = this.state.text.slice(0, -1);
       this.setState({
         text: arr,
       });
@@ -51,7 +51,7 @@ module.exports = class PlayerArea extends expose.Component {
       this.show();
       expose.get_state('board').removeAllExtraClasses();
 
-      var _on_compile = resp => {
+      const _on_compile = resp => {
         console.log('RESP', resp);
         if (resp.data.success) {
           core.runFile(resp.data.file);
@@ -64,16 +64,16 @@ module.exports = class PlayerArea extends expose.Component {
       };
 
       if (filename && typeof filename === 'object') {
-        var filelist = filename;
+        const fileList = filename;
         utils.post(
           '/compile',
           {
-            files: filelist,
+            files: fileList,
           },
           _on_compile
         );
         this.setState({
-          text: ['Compiling... ' + filelist.join(', ')],
+          text: ['Compiling... ' + fileList.join(', ')],
           errors: [],
         });
       } else {
@@ -106,7 +106,7 @@ module.exports = class PlayerArea extends expose.Component {
   }
 
   componentDidUpdate() {
-    var n = document.getElementById('player-text-area');
+    const n = document.getElementById('player-text-area');
     n.scrollTop = n.scrollHeight;
     this.last_index_shown = this.state.text.length - 1;
   }
@@ -128,11 +128,11 @@ module.exports = class PlayerArea extends expose.Component {
             if (ev.target.id === 'close-player') {
               this.hide();
             } else if (ev.target.className === 'player-error') {
-              var arr = ev.target;
+              const arr = ev.target;
               expose
                 .get_state('file-browser')
                 .loadFileExternal(arr.title, () => {
-                  var id = arr.id.slice(6);
+                  const id = arr.id.slice(6);
                   expose.get_state('board').centerOnNode(id);
                   $('#' + id).addClass('item-error');
                 });
