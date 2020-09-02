@@ -69,6 +69,8 @@ class Board extends expose.Component {
     this.zoom = 1;
     this.maxZoom = 1;
     this.minZoom = 0.2;
+    this.isSelectBoxVisible = false;
+    this.selectPos = [0, 0];
 
     this.onKeydown = ev => {
       if (this.linkNode && ev.keyCode === 27) {
@@ -83,11 +85,27 @@ class Board extends expose.Component {
       if (dialog.is_visible() || ev.which === 3) {
         return;
       }
-      this.panning = true;
-      this.lastOffsetX = this.offsetX;
-      this.lastOffsetY = this.offsetY;
-      this.lastMouseX = ev.clientX;
-      this.lastMouseY = ev.clientY;
+      if (utils.is_ctrl()) {
+        ev.preventDefault();
+        this.isSelectBoxVisible = true;
+        this.selectPos = [ev.clientX, ev.clientY];
+        const div = document.createElement('div');
+        div.id = 'select-box';
+        div.style.position = 'fixed';
+        div.style.left = ev.clientX;
+        div.style.top = ev.clientY;
+        div.style.border = '4px solid white';
+        div.style['min-width'] = '4px';
+        div.style['min-height'] = '4px';
+        div.style['pointer-events'] = 'none';
+        document.body.appendChild(div);
+      } else {
+        this.panning = true;
+        this.lastOffsetX = this.offsetX;
+        this.lastOffsetY = this.offsetY;
+        this.lastMouseX = ev.clientX;
+        this.lastMouseY = ev.clientY;
+      }
     };
 
     this.onMouseMove = ev => {
@@ -97,11 +115,65 @@ class Board extends expose.Component {
         this.offsetY =
           this.lastOffsetY + (this.lastMouseY - ev.clientY) * (1 / this.zoom);
         this.renderAtOffset();
+      } else if (this.isSelectBoxVisible) {
+        const div = document.getElementById('select-box');
+        const [origX, origY] = this.selectPos;
+        const { clientX, clientY } = ev;
+        div.style.width = Math.abs(clientX - origX);
+        div.style.height = Math.abs(clientY - origY);
+
+        if (clientX < origX) {
+          div.style.left = clientX;
+        } else {
+          div.style.left = origX;
+        }
+        if (clientY < origY) {
+          div.style.top = clientY;
+        } else {
+          div.style.top = origY;
+        }
       }
     };
 
     this.onMouseUp = () => {
       this.panning = false;
+      const div = document.getElementById('select-box');
+      const rectCollides = (rect1, rect2) => {
+        const { x: r1x, y: r1y, width: r1w, height: r1h } = rect1;
+        const { x: r2x, y: r2y, width: r2w, height: r2h } = rect2;
+        if (
+          r1x + r1w >= r2x &&
+          r1x <= r2x + r2w &&
+          r1y + r1h >= r2y &&
+          r1y <= r2y + r2h
+        ) {
+          return true;
+        }
+        return false;
+      };
+
+      if (div) {
+        this.dragSet = [];
+        this.plumb.clearDragSelection();
+        this.isSelectBoxVisible = false;
+        const div = document.getElementById('select-box');
+        const selectRect = div.getBoundingClientRect();
+        for (let i in this.file.nodes) {
+          const node = this.file.nodes[i];
+          const item = document.getElementById(node.id);
+          const rect = item.getBoundingClientRect();
+          if (rectCollides(selectRect, rect)) {
+            let ind = this.dragSet.indexOf(node.id);
+            if (ind === -1) {
+              this.plumb.addToDragSelection(node.id);
+              this.dragSet.push(node.id);
+            }
+          }
+        }
+        this.isSelectBoxVisible = false;
+        document.getElementById('select-box').remove();
+        div.remove();
+      }
     };
 
     this.onScroll = ev => {
@@ -181,6 +253,7 @@ class Board extends expose.Component {
       } else if (
         file_node.type === 'chunk' ||
         file_node.type === 'action' ||
+        file_node.type === 'declaration' ||
         file_node.type === 'switch_conditional'
       ) {
         dialog.set_shift_req(true);
@@ -278,7 +351,7 @@ class Board extends expose.Component {
           {
             midpoint: 0.6,
             curviness: 30,
-            cornerRadius: 3,
+            cornerRadius: 2,
             stub: 0,
             alwaysRespectStubs: true,
           },
@@ -712,7 +785,7 @@ class Board extends expose.Component {
     let node = this.addNode(
       parent,
       'pass_fail',
-      'Math.random() > 0.5 ? true : false;'
+      'Math.random() > 0.5 ? true : false'
     );
     let idPass = getNodeId();
     let idFail = getNodeId();
@@ -843,9 +916,15 @@ class Board extends expose.Component {
       `<div class="item-content" ${content_style}><span class="no-select">${node.content}</span></div>` +
       `<div class="anchor-to" id="${node.id}_to"></div>` +
       `<div class="anchor-from" id="${node.id}_from"></div>` +
-      (node.type === 'root'
+      (node.type === 'root' ||
+      node.type === 'pass_text' ||
+      node.type === 'fail_text'
         ? ''
-        : `<div onclick="on_delete_click(${node.id})" class="item-delete" style="font-family:monospace;color:red;cursor:pointer;padding:5px;position:absolute;right:0px;top:0px" id="${node.id}_delete"><span class="no-select">X</span></div>`) +
+        : `<div onclick="on_delete_click(${node.id})" class="item-delete" id="${
+            node.id
+          }_delete" style="${
+            node.type === 'choice' || node.type === 'switch' ? 'right:10' : ''
+          }"><span class="no-select">X</span></div>`) +
       `</div>`
     );
   }

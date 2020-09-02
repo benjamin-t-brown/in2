@@ -114,14 +114,14 @@ var player = /*eslint-disable-line*/ {
     let _helper = (paths, obj) => {
       let k = paths.shift();
       if (!paths.length) {
-        return obj[k] === undefined ? null : obj[k];
+        return obj[k] === undefined ? undefined : obj[k];
       }
 
       let nextObj = obj[k];
       if (nextObj !== undefined) {
         return _helper(paths, nextObj);
       } else {
-        return null;
+        return undefined;
       }
     };
 

@@ -32,7 +32,7 @@ if (argv.cpp) {
   extension = 'cpp';
 }
 
-const PORT = 8888;
+const PORT = 8899;
 
 http_server.start(PORT, __dirname + '/../dist/');
 process.on('SIGINT', function () {
@@ -141,6 +141,14 @@ http_server.get('compile', (obj, resp) => {
       })
     );
   }
+});
+
+http_server.post('player', (obj, resp, data) => {
+  fs.writeFile(SAVE_DIR + '/player.json', JSON.stringify(data), err => {
+    http_server.reply(resp, {
+      err: err,
+    });
+  });
 });
 
 // Save a file

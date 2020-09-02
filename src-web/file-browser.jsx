@@ -3,6 +3,7 @@ const css = require('css');
 const utils = require('utils');
 const expose = require('expose');
 const dialog = require('dialog');
+const core = require('core');
 
 //This file represents the file browser on the right side of the screen.
 //It can:
@@ -59,7 +60,7 @@ module.exports = class FileBrowser extends expose.Component {
       expose.get_state('player-area').compile(this.props.current_file_name);
     };
 
-    this.onCompileSelectedClick = () => {
+    this.getCheckedFiles = () => {
       const checked_files = [];
       for (const i in this.state.checked_files) {
         if (this.state.checked_files[i]) {
@@ -70,7 +71,11 @@ module.exports = class FileBrowser extends expose.Component {
           }
         }
       }
-      expose.get_state('player-area').compile(checked_files);
+      return checked_files;
+    };
+
+    this.onCompileSelectedClick = () => {
+      expose.get_state('player-area').compile(this.getCheckedFiles());
     };
 
     this.onCompileAllClick = () => {
@@ -278,7 +283,7 @@ module.exports = class FileBrowser extends expose.Component {
             style: {
               display: 'flex',
               justifyContent: 'space-between',
-              width: '270px',
+              width: '280px',
             },
           },
           React.createElement('input', {
@@ -459,6 +464,43 @@ module.exports = class FileBrowser extends expose.Component {
           React.createElement('span', { className: 'no-select' }, 'Paste')
         )
       ),
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          className="confirm-button confirm-button-player"
+          onClick={async () => {
+            const resp = await new Promise(resolve => {
+              utils.get('/compile', resolve);
+            });
+            let states = {};
+            if (resp.error) {
+              states.error = resp.error;
+            } else if (resp.data.success === false) {
+              states = resp.data.errors;
+            } else {
+              states = await core.runFileDry(resp.data.file);
+            }
+            dialog.set_shift_req(true);
+            dialog.show_input(
+              {
+                content: JSON.stringify(states, null, 2),
+              },
+              () => {
+                dialog.set_shift_req(false);
+              },
+              () => {
+                dialog.set_shift_req(false);
+              }
+            );
+          }}
+        >
+          PLAYER STORE
+        </div>
+      </div>,
       <div
         style={{
           textAlign: 'center',

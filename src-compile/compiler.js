@@ -115,7 +115,6 @@ function _eval_content(content, params) {
   window.CURRENT_FILE_VAR = '${CURRENT_FILE_VAR}';
   window.LAST_FILE_VAR = '${LAST_FILE_VAR}';
   var document = window.document = {};
-  window.stylize = () => {};
   `;
 
   const postfix = `
@@ -171,6 +170,7 @@ class Compiler {
     this.files_to_verify = [];
     this.already_compiled = {};
     this.has_error = {};
+    this.declarations = {};
     this.typeFuncs = {
       root: (node, file) => {
         const children = file.getChildren(node);
@@ -182,18 +182,53 @@ class Compiler {
           return null;
         } else {
           const child = children[0];
+          let innerContent = this.compileNode(child, file);
+          let declContent = '';
+          if (innerContent) {
+            Object.keys(this.declarations)
+              .sort((a, b) => {
+                return a.length < b.length ? 1 : -1;
+              })
+              .forEach(declName => {
+                declName = declName.replace(/;/g, '');
+                if (declName.indexOf('DECL') === 0) {
+                  let [, playerKey] = declName.split(' ');
+                  if (!playerKey) {
+                    this.error(
+                      file.name,
+                      node.id,
+                      'Declaration node syntax error: expected variable name after DECL.'
+                    );
+                  }
+                  declContent += `if (player.get('${playerKey}') === undefined ) player.set('${playerKey}', ${this.declarations[declName]});\n`;
+                } else if (declName.indexOf('VAR_') === 0) {
+                  innerContent = innerContent.replace(
+                    new RegExp(declName, 'g'),
+                    this.declarations[declName]
+                  );
+                } else {
+                  this.error(
+                    file.name,
+                    node.id,
+                    'Declaration node syntax error: line without DECL or VAR.'
+                  );
+                }
+              });
+          }
           const ret =
-            `if(!id){\n` +
+            `if(id === undefined){\n` +
             `    scope.${child.id}();\n` +
             `}\n` +
-            `else {\n` +
+            `else if (id) {\n` +
             `    scope[id]();\n` +
             `}\n`;
           return (
             `files[\`${file.name}\`] = id => {\n` +
             `player.set(CURRENT_FILE_VAR, '${file.name}' );\n` +
-            this.compileNode(child, file) +
+            declContent +
+            innerContent +
             ret +
+            'return player.state' +
             `};\n`
           );
         }
@@ -258,9 +293,9 @@ class Compiler {
         let ret =
           `// ${node.type}\n` +
           `scope.${node.id} = () => {\n` +
-          `    player.set( CURRENT_NODE_VAR, '${node.id}' );\n` +
+          `    player.set(CURRENT_NODE_VAR, '${node.id}' );\n` +
           `    let text = \`${node.content}\`;\n` +
-          `    core.choose( text, '${node.id}', [` +
+          `    core.choose(text, '${node.id}', [` +
           ``;
         const nodes_to_compile = [];
         for (let i in children) {
@@ -446,8 +481,8 @@ class Compiler {
         let ret =
           `// ${node.type}\n` +
           `scope.${node.id} = () => {\n` +
-          `    player.set( CURRENT_NODE_VAR, '${node.id}' );\n` +
-          `    const condition = ( () => { return ${node.content} } )();\n` +
+          `    player.set(CURRENT_NODE_VAR, '${node.id}');\n` +
+          `    const condition = (() => { return ${node.content} })();\n` +
           ``;
         try {
           let evaluationFailure = _eval_content(node.content);
@@ -485,17 +520,17 @@ class Compiler {
           const child2 = children2[0];
           if (child.type === 'pass_text') {
             ret +=
-              `    if( condition ){\n` +
-              `        player.set( CURRENT_NODE_VAR, '${child.id}' );\n` +
+              `    if(condition){\n` +
+              `        player.set(CURRENT_NODE_VAR, '${child.id}');\n` +
               `        let text = \`${child.content}\`;\n` +
-              `        core.say( text, scope.${child2.id} );\n` +
+              `        core.say(text, scope.${child2.id});\n` +
               `    }\n`;
           } else if (child.type === 'fail_text') {
             ret +=
-              `    if( !condition ){\n` +
-              `        player.set( CURRENT_NODE_VAR, '${child.id}' );\n` +
+              `    if(!condition){\n` +
+              `        player.set(CURRENT_NODE_VAR, '${child.id}');\n` +
               `        let text = \`${child.content}\`;\n` +
-              `        core.say( text, scope.${child2.id} );\n` +
+              `        core.say(text, scope.${child2.id});\n` +
               `    }\n`;
           }
         }
@@ -704,6 +739,54 @@ class Compiler {
           return ret + '\n' + this.compileNode(child, file);
         }
       },
+      declaration: (node, file) => {
+        const children = file.getChildren(node);
+        if (children.length === 0) {
+          this.error(
+            file.name,
+            node.id,
+            `Declaration node ${node.id} has no child.\n CONTENT ${node.content}`
+          );
+          return null;
+        } else if (children.length > 1) {
+          this.error(
+            file.name,
+            node.id,
+            `Declaration node ${node.id} has multiple children.\n CONTENT ${node.content}`
+          );
+          return null;
+        } else {
+          const child = children[0];
+          const lines = node.content.split('\n');
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const [first, second] = line.split('=');
+            if (!first) {
+              continue;
+            }
+            if (!second) {
+              this.error(
+                file.name,
+                node.id,
+                `Declaration node ${node.id} could not be parsed, no '=' found.\n CONTENT ${node.content}`
+              );
+            }
+            this.declarations[first.trim()] = second.trim();
+          }
+          const ret = _create_action_node(``, node.id, child.id);
+          if (ret.slice(0, 5) === 'error') {
+            this.error(
+              file.name,
+              node.id,
+              'Declaration node content could not be evaluated. ' +
+                ret.slice(5) +
+                `\n CONTENT ${node.content}`
+            );
+            return null;
+          }
+          return ret + '\n' + this.compileNode(child, file);
+        }
+      },
       next_file: node => {
         this.files_to_verify.push(node.content);
         let ret =
@@ -717,7 +800,7 @@ class Compiler {
         if (includeDebugStatements) {
           ret +=
             `    else {\n` +
-            '        core.say( `EXECUTION WARNING, no file exists named ${key}. You are probably running a subset of all the files, and not the whole scenario. ` + Object.keys(files), files.exit );\n' + //eslint-disable-line
+            '        core.say(`EXECUTION WARNING, no file exists named ${key}. You are probably running a subset of all the files, and not the whole scenario. ` + Object.keys(files), files.exit);\n' + //eslint-disable-line
             `    }\n`;
         }
         ret += `};\n\n`;
@@ -733,7 +816,7 @@ class Compiler {
     * IN2 Logic Tree File
     *
     * This file has been generated by an IN2 compiler.
-    */\n{\n/* global player, core, engine */
+    */\n/*eslint-disable-line*/function run(isDryRun){\n/* global player, core, engine */
 const files = {};
 const scope = {};
 const CURRENT_NODE_VAR = '${CURRENT_NODE_VAR}';
@@ -743,10 +826,12 @@ const LAST_FILE_VAR = '${LAST_FILE_VAR}';`;
   //footer for entire file (not individual compiled files)
   getFooter(mainFileName) {
     const ret =
-      `files.exit = function(){\n` +
-      `    core.exit();\n` +
+      `files.exit = () => {\n` +
+      `  core.exit();\n` +
       `};\n` +
-      `files['${mainFileName}']();\n}\n`;
+      `if (!isDryRun){ files['${mainFileName}'](); }\n` +
+      `return { files, scope }\n` +
+      `}`;
     return ret;
   }
 
@@ -772,6 +857,7 @@ const LAST_FILE_VAR = '${LAST_FILE_VAR}';`;
           this.error(filename, null, 'Cannot parse json in file. \n\n' + e);
           return cb(this.errors);
         }
+        this.declarations = {};
         const file = new File(json);
         const ret = this.compileFile(file);
         if (this.errors.length) {
@@ -901,7 +987,7 @@ if (argv.file) {
   const filelist = argv.files.split(',').map(filename => {
     return __dirname + '/../save/' + filename;
   });
-  compile(filelist, ['main.compiled.js']);
+  compile(filelist, ['main.compiled.js', 'out/main.compiled.js']);
 } else {
   fs.readdir(__dirname + '/../save', (err, dirs) => {
     dirs = dirs

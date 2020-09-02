@@ -23,7 +23,7 @@ module.exports = class ConfirmDialog extends React.Component {
         style: {
           position: 'absolute',
           width: '300px',
-          padding: '5px',
+          padding: '10px 25px 5px 25px',
           top: '300px',
           left: window.innerWidth / 2 - 140 + 'px',
           backgroundColor: css.colors.SECONDARY,
@@ -44,6 +44,7 @@ module.exports = class ConfirmDialog extends React.Component {
         'div',
         {
           style: {
+            marginTop: '25px',
             display: 'flex',
             justifyContent: 'flex-end',
           },

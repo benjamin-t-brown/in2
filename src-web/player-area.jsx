@@ -186,6 +186,7 @@ module.exports = class PlayerArea extends expose.Component {
               color: 'red',
               fontSize: '16px',
               cursor: 'pointer',
+              fontFamily: 'monospace',
             },
           },
           'Close'

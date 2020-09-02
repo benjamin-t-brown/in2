@@ -146,7 +146,7 @@ exp = {
     console.info('Set handler', method, '"' + name + '"');
     if (_handlers[method][name]) {
       console.trace();
-      console.info('[WARNING] Overwritting event', method, name);
+      console.info('[WARNING] Overwriting event', method, name);
     }
     _handlers[method][name] = func;
   },

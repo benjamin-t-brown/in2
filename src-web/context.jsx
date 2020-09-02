@@ -105,9 +105,9 @@ exp.show_context_menu = function (board, elem) {
     return;
   }
   board.disable_context = true;
-  var { x, y } = utils.get_mouse_pos();
-  var cbs = {};
-  var file_node = board.getNode(elem.id);
+  const { x, y } = utils.get_mouse_pos();
+  const cbs = {};
+  const file_node = board.getNode(elem.id);
   if (file_node.type !== 'next_file' && board.nodeCanHaveChild(file_node)) {
     if (file_node.type === 'choice') {
       cbs.linkNode = function (parent) {
@@ -117,7 +117,11 @@ exp.show_context_menu = function (board, elem) {
         this.addNode(parent, 'choice_text');
       }.bind(board);
       cbs.createConditionalChoiceNode = function (parent) {
-        var added_node = this.addNode(parent, 'choice_conditional', 'true;');
+        const added_node = this.addNode(
+          parent,
+          'choice_conditional',
+          'VAR_test === 1'
+        );
         this.addNode(added_node, 'choice_text');
       }.bind(board);
     } else if (file_node.type === 'choice_conditional') {
@@ -132,7 +136,7 @@ exp.show_context_menu = function (board, elem) {
         this.enterLinkMode(parent);
       }.bind(board);
       cbs.createSwitchConditionalNode = function (parent) {
-        this.addNode(parent, 'switch_conditional', `player.get('something')`);
+        this.addNode(parent, 'switch_conditional', `VAR_test === 1`);
       }.bind(board);
     } else {
       cbs.linkNode = function (parent) {
@@ -156,11 +160,11 @@ exp.show_context_menu = function (board, elem) {
       cbs.createSwitchNode = function (parent) {
         this.addSwitchNode(parent);
       }.bind(board);
-      cbs.createTriggerNode = function (parent) {
-        this.addNode(parent, 'trigger', ``);
-      }.bind(board);
       cbs.createDeferNode = function (parent) {
         this.addNode(parent, 'defer', `engine.defer();`);
+      }.bind(board);
+      cbs.createDeclNode = function (parent) {
+        this.addNode(parent, 'declaration', `VAR_test = player.get('test')`);
       }.bind(board);
       cbs.createNextFileNode = function (parent) {
         dialog.show_input_with_select(

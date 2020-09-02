@@ -8,7 +8,7 @@ let container = document.createElement('div');
 document.body.prepend(container);
 let Main = (global.Main = {});
 
-const App = props => (
+const App = () => (
   <ThemeProvider theme={css}>
     <MainContainer main={Main} />
   </ThemeProvider>

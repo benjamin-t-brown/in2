@@ -41,12 +41,13 @@ module.exports = class InputWithSelectDialog extends React.Component {
       'div',
       {
         style: {
+          background: 'rgb(53, 53, 53)',
+          resize: 'none',
           position: 'absolute',
           width: '400px',
           padding: '5px',
           top: '300px',
           left: window.innerWidth / 2 - 140 + 'px',
-          backgroundColor: css.colors.SECONDARY,
           border: '4px solid ' + css.colors.SECONDARY_ALT,
           color: css.colors.TEXT_LIGHT,
         },

@@ -86,9 +86,10 @@ module.exports = class InputDialog extends React.Component {
               onChange: this.handleInputChange,
               value: this.state.value,
               style: {
+                padding: '5px',
+                background: 'rgb(53, 53, 53)',
                 resize: 'none',
                 whiteSpace: this.props.whiteSpace ? 'pre' : '',
-                backgroundColor: css.colors.BG,
                 color: css.colors.TEXT_LIGHT,
                 width: '100%',
                 height: this.props.node ? undefined : '20px',

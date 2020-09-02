@@ -29,10 +29,10 @@ module.exports = {
     open: true,
     openPage: 'index.dev.html',
     proxy: {
-      '/compile': 'http://localhost:8888',
-      '/file': 'http://localhost:8888',
-      '/images': 'http://localhost:8888',
-      '/standalone': 'http://localhost:8888',
+      '/compile': 'http://localhost:8899',
+      '/file': 'http://localhost:8899',
+      '/images': 'http://localhost:8899',
+      '/standalone': 'http://localhost:8899',
     },
   },
 };

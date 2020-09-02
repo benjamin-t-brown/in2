@@ -94,22 +94,24 @@ body {
 
 .item {
   font-family: monospace;
+  min-height: 10px;
 }
 
 .item-delete {
-  background-color: transparent;
+  /* background-color: rgba(255, 255, 255, 0.75); */
   color: red;
   cursor: pointer;
   padding: 5px;
   position: absolute;
-  right: 0px;
-  top: 0px;
   font-size: 12px;
   font-weight: bold;
+  font-family: monospace;
+  right: 0px;
+  top: 0px;
 }
 
 .item-delete: hover {
-  background-color: pink;
+  background-color: rgba(255, 255, 255, 1);
 }
 
 .item-root {
@@ -155,6 +157,7 @@ body {
   overflow: hidden;
   word-break: break-word;
   font-family: Arial;
+  overflow: inherit;
 }
 
 .item-choice:hover {
@@ -178,18 +181,17 @@ body {
 }
 
 .item-choice_conditional {
-  border-bottom-left-radius: 50px;
-  border-bottom-right-radius: 50px;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
   background-color: $css.colors.CONDITIONAL;
   padding-left: 20px;
   padding-right: 20px;
-  padding-top: 3px;
+  padding-top: 8px;
   padding-bottom: 10px;
   cursor: pointer;
   position: absolute;
-  overflow: hidden;
+  overflow: inherit;
   border: 1px solid $css.colors.PRIMARY;
-  max-width: 400px;
   color: $css.colors.TEXT_LIGHT;
   white-space: pre;
 }
@@ -202,30 +204,30 @@ body {
   padding: 15px;
   cursor: pointer;
   position: absolute;
-  border: 1px solid $css.colors.PRIMARY;
-  border-radius: 30px;
-  width: 50px;
-  background-color: $css.colors.SWITCH;
-  color: $css.colors.TEXT_LIGHT;
+  border: 1px solid #4a4a4a;
+  border-radius: 25px;
+  width: 75px;
+  background-color: #673c92;
+  color: #dedede;
   min-height: 10px;
+  text-align: center;
 }
 .item-switch:hover {
   filter: brightness(125%);
 }
 
 .item-switch_conditional {
-  border-bottom-left-radius: 50px;
-  border-bottom-right-radius: 50px;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
   background-color: $css.colors.CONDITIONAL;
   padding-left: 20px;
   padding-right: 20px;
-  padding-top: 3px;
+  padding-top: 8px;
   padding-bottom: 10px;
   cursor: pointer;
   position: absolute;
-  overflow: hidden;
+  overflow: inherit;
   border: 1px solid $css.colors.PRIMARY;
-  max-width: 300px;
   color: $css.colors.TEXT_LIGHT;
 }
 .item-switch_conditional:hover {
@@ -233,12 +235,12 @@ body {
 }
 
 .item-switch_default {
-  border-bottom-left-radius: 50px;
-  border-bottom-right-radius: 50px;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
   background-color: $css.colors.TEXT_DARK;
   padding-left: 20px;
   padding-right: 20px;
-  padding-top: 3px;
+  padding-top: 8px;
   padding-bottom: 10px;
   cursor: pointer;
   position: absolute;
@@ -254,12 +256,11 @@ body {
 
 .item-pass_fail {
   background-color: $css.colors.CONDITIONAL;
-  padding: 8px;
+  padding: 12px;
   cursor: pointer;
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.PRIMARY;
-  width: 400px;
   color: $css.colors.TEXT_LIGHT;
   white-space: nowrap;
 }
@@ -275,7 +276,7 @@ body {
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.PRIMARY;
-  width: 25px;
+  min-width: 50px;
   color: $css.colors.TEXT_LIGHT;
   min-height: 10px;
 }
@@ -291,7 +292,7 @@ body {
   position: absolute;
   overflow: hidden;
   border: 1px solid $css.colors.PRIMARY;
-  width: 25px;
+  min-width: 50px;
   color: $css.colors.TEXT_LIGHT;
   min-height: 10px;
 }
@@ -369,6 +370,21 @@ body {
   filter: brightness(125%);
 }
 
+.item-declaration {
+  background-color: #967d00;
+  text-align: left;
+  padding: 8px;
+  cursor: pointer;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid $css.colors.SECONDARY;
+  min-width: 200px;
+  max-width: 800px;
+  white-space: pre;
+  color: $css.colors.TEXT_LIGHT;
+  padding: 1rem;
+}
+
 .item-next_file {
   background-color: $css.colors.TEXT_LIGHT;
   padding: 8px;
@@ -413,6 +429,7 @@ body {
 }
 
 .confirm-button {
+  user-select: none;
   background-color: $css.colors.CONFIRM;
   padding: 5px;
   width: 80px;
@@ -430,6 +447,7 @@ body {
 }
 
 .confirm-button-secondary {
+  user-select: none;
   background-color: $css.colors.SECONDARY;
   padding: 5px;
   width: 80px;
@@ -444,6 +462,22 @@ body {
 
 .confirm-button-secondary:hover {
   background-color: rgb(50%, 50%, 50%);
+}
+
+.confirm-button-secondary:active {
+  background-color: rgb(25%, 25%, 25%);
+}
+
+.confirm-button-player {
+  user-select: none;
+  background: #967d00;
+  width: 100%;
+}
+.confirm-button-player:hover {
+  background-color: rgb(50%, 50%, 50%);
+}
+.confirm-button-player:active {
+  background-color: rgb(25%, 25%, 25%);
 }
 
 .cancel-button {

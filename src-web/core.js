@@ -109,52 +109,66 @@ exports._core = {
   },
 
   async choose(text, node_id, choices) {
-    return new Promise(resolve => {
-      this.centerAtActiveNode();
-      if (text) {
-        _console_log(text);
-        _console_log();
-      }
-      _console_log('---------');
-      const actual_choices = choices.filter(choice => {
-        if (choice.c()) {
-          return true;
+    return new Promise((resolve, reject) => {
+      try {
+        this.centerAtActiveNode();
+        if (text) {
+          _console_log(text);
+          _console_log();
+        }
+        _console_log('---------');
+        const actual_choices = choices.filter(choice => {
+          if (choice.c()) {
+            return true;
+          } else {
+            return false;
+          }
+        });
+        if (last_choose_node_id === node_id) {
+          // actual_choices = actual_choices.filter( ( choice ) => {
+          // 	return last_choose_nodes_selected.indexOf( choice.t ) === -1;
+          // } );
         } else {
-          return false;
+          last_choose_node_id = node_id;
+          last_choose_nodes_selected = [];
         }
-      });
-      if (last_choose_node_id === node_id) {
-        // actual_choices = actual_choices.filter( ( choice ) => {
-        // 	return last_choose_nodes_selected.indexOf( choice.t ) === -1;
-        // } );
-      } else {
-        last_choose_node_id = node_id;
-        last_choose_nodes_selected = [];
+        let ctr = 1;
+        actual_choices.forEach(choice => {
+          _console_log('  ' + ctr + '.) ' + choice.t);
+          ctr++;
+        });
+        _console_log('---------');
+        this.catcher.setKeypressEvent(async key => {
+          const choice = actual_choices[key - 1];
+          if (choice) {
+            last_choose_nodes_selected.push(choice.t);
+            this.catcher.setKeypressEvent(() => {});
+            _console_log();
+            _console_log(choice.t);
+            _console_log();
+            await choice.cb();
+            disable_next_say_wait = false;
+            resolve();
+          }
+        });
+      } catch (e) {
+        console.error('reject');
+        reject(e);
+        expose.set_state('player-area', {
+          errors: [
+            {
+              text: 'Error during evaluation: ' + e.toString(),
+              filename: 'current',
+              node_id,
+            },
+          ],
+        });
       }
-      let ctr = 1;
-      actual_choices.forEach(choice => {
-        _console_log('  ' + ctr + '.) ' + choice.t);
-        ctr++;
-      });
-      _console_log('---------');
-      this.catcher.setKeypressEvent(async key => {
-        const choice = actual_choices[key - 1];
-        if (choice) {
-          last_choose_nodes_selected.push(choice.t);
-          this.catcher.setKeypressEvent(() => {});
-          _console_log();
-          _console_log(choice.t);
-          _console_log();
-          await choice.cb();
-          disable_next_say_wait = false;
-          resolve();
-        }
-      });
     });
   },
 
   exit() {
-    console.log('BYE!');
+    // console.log('BYE!');
   },
 };
 
@@ -173,14 +187,14 @@ exports._player = {
     let _helper = (paths, obj) => {
       let k = paths.shift();
       if (!paths.length) {
-        return obj[k] === undefined ? null : obj[k];
+        return obj[k] === undefined ? undefined : obj[k];
       }
 
       let next_obj = obj[k];
       if (next_obj !== undefined) {
         return _helper(paths, next_obj);
       } else {
-        return null;
+        return undefined;
       }
     };
 
@@ -251,12 +265,63 @@ exports.runFile = async function (file) {
   standalone = (await utils.get('/standalone/')).data;
   const context = {};
   console.log('Now evaluating...');
-  const evalStr = standalone + '\n' + postfix + '\n' + file;
+  const evalStr = standalone + '\n' + postfix + '\n(' + file + ')()';
   try {
+    exports._player.init();
     evalInContext(evalStr, context);
     window.player = exports._player;
   } catch (e) {
     console.error(e, e.stack);
     //console.log(evalStr);
+  }
+};
+
+exports.runFileDry = async function (file) {
+  const flatten = prevState => {
+    const errors = [];
+    const keys = {};
+    const fileNames = {};
+    for (let fileName in prevState) {
+      for (let key in prevState[fileName]) {
+        if (keys[key]) {
+          errors.push(
+            `Duplicate key declared: '${key}' (${fileName}) and (${fileNames[key]})`
+          );
+        } else {
+          keys[key] = prevState[fileName][key];
+          fileNames[key] = fileName;
+        }
+      }
+    }
+    if (errors.length) {
+      keys.errors = errors;
+    }
+    return keys;
+  };
+
+  console.log('fetching standalone file');
+  standalone = (await utils.get('/standalone/')).data;
+  const context = {};
+  const evalStr = standalone + '\n' + postfix + '\n(' + file + ')(true)';
+  console.log('Now evaluating dry...');
+  const states = {};
+  try {
+    let result = evalInContext(evalStr, context);
+    for (let i in result.files) {
+      if (i === 'exit') {
+        continue;
+      }
+      exports._player.init();
+      result = evalInContext(evalStr, context);
+      const playerState = result.files[i](false);
+      states[i] = { ...playerState };
+      delete states[i].curIN2f;
+    }
+    const flattenedState = flatten(states);
+    states._ = flattenedState;
+    return states;
+  } catch (e) {
+    console.error(e, e.stack);
+    return {};
   }
 };
