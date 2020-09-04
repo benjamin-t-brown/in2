@@ -2,7 +2,7 @@ const React = require('react');
 const expose = require('expose');
 const css = require('css');
 const utils = require('utils');
-const core = require('core');
+const core = require('core-in2');
 const $ = require('jquery');
 
 module.exports = class PlayerArea extends expose.Component {
@@ -52,7 +52,6 @@ module.exports = class PlayerArea extends expose.Component {
       expose.get_state('board').removeAllExtraClasses();
 
       const _on_compile = resp => {
-        console.log('RESP', resp);
         if (resp.data.success) {
           core.runFile(resp.data.file);
         } else {
@@ -192,7 +191,9 @@ module.exports = class PlayerArea extends expose.Component {
           'Close'
         )
       ),
-      <div id="db" />,
+      <div id="canvasArea">
+        <canvas width="1" height="1" id="player-canvas"></canvas>
+      </div>,
       React.createElement(
         'div',
         {

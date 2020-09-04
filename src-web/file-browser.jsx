@@ -3,7 +3,7 @@ const css = require('css');
 const utils = require('utils');
 const expose = require('expose');
 const dialog = require('dialog');
-const core = require('core');
+const core = require('core-in2');
 
 //This file represents the file browser on the right side of the screen.
 //It can:

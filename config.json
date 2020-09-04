@@ -1,5 +1,9 @@
 {
   "standaloneCorePath": "src-js-standalone/core.js",
-  "additionalPaths": [],
+  "additionalPaths": [
+    "src-js-standalone/animation.js",
+    "src-js-standalone/display.js",
+    "src-js-standalone/ui.js"
+  ],
   "standaloneIndexPath": "src-js-standalone/index.html"
 }

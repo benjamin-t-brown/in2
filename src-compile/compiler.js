@@ -190,7 +190,6 @@ class Compiler {
                 return a.length < b.length ? 1 : -1;
               })
               .forEach(declName => {
-                declName = declName.replace(/;/g, '');
                 if (declName.indexOf('DECL') === 0) {
                   let [, playerKey] = declName.split(' ');
                   if (!playerKey) {
@@ -771,7 +770,9 @@ class Compiler {
                 `Declaration node ${node.id} could not be parsed, no '=' found.\n CONTENT ${node.content}`
               );
             }
-            this.declarations[first.trim()] = second.trim();
+            this.declarations[
+              first.trim().replace(/;/g, '')
+            ] = second.trim().replace(/;/g, '');
           }
           const ret = _create_action_node(``, node.id, child.id);
           if (ret.slice(0, 5) === 'error') {

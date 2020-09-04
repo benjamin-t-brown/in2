@@ -47,10 +47,11 @@ let last_choose_nodes_selected = [];
 
 exports._core = {
   catcher: new KeyCatcher(),
-  init() {
+  async init(canvasId) {
     disable_next_say_wait = false;
     last_choose_node_id = null;
     last_choose_nodes_selected = [];
+    await this.origCore.init(canvasId); // I promise this exists
   },
 
   centerAtActiveNode() {
@@ -168,6 +169,7 @@ exports._core = {
   },
 
   exit() {
+    this.origCore.exit();
     // console.log('BYE!');
   },
 };
@@ -223,13 +225,6 @@ exports._player = {
   },
 };
 
-exports.init = function (canvas_id, cb) {
-  exports._core.init();
-  exports._core.catcher.enable();
-  exports._player.init();
-  cb();
-};
-
 exports.core = function () {
   return exports._core;
 };
@@ -240,6 +235,7 @@ exports.player = function () {
 
 exports.disable = function () {
   exports._core.catcher.disable();
+  exports._core.exit();
 };
 
 exports.enable = function () {
@@ -254,20 +250,35 @@ function evalInContext(js, context) {
 
 const postfix = `
 player = {...player, ...exports._player};
-core = {...core, ...exports._core};
+core = {...core, origCore: core, ...exports._core};
+exports._core.origCore = core;
 `;
 
 let standalone = '';
 exports.runFile = async function (file) {
   _console_log('Success!');
   _console_log('');
-  console.log('fetching standalone file');
   standalone = (await utils.get('/standalone/')).data;
   const context = {};
   console.log('Now evaluating...');
-  const evalStr = standalone + '\n' + postfix + '\n(' + file + ')()';
+
+  const evalStr =
+    standalone +
+    '\n' +
+    postfix +
+    '\n' +
+    `
+${file}
+async function main() {
+  console.log('Loading...');
+  await core.init('player-canvas');
+  player.init();
+  console.log('Run!', core);
+  run();
+}
+main();
+  `;
   try {
-    exports._player.init();
     evalInContext(evalStr, context);
     window.player = exports._player;
   } catch (e) {
@@ -299,7 +310,6 @@ exports.runFileDry = async function (file) {
     return keys;
   };
 
-  console.log('fetching standalone file');
   standalone = (await utils.get('/standalone/')).data;
   const context = {};
   const evalStr = standalone + '\n' + postfix + '\n(' + file + ')(true)';

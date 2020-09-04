@@ -4,7 +4,7 @@ const ConfirmDialog = require('./confirm-dialog');
 const InputDialog = require('./input-dialog');
 const NotificationDialog = require('./notification-dialog');
 const InputWithSelectDialog = require('./input-with-select-dialog');
-const core = require('core');
+const core = require('core-in2');
 
 window.current_confirm = null;
 window.current_cancel = null;

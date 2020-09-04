@@ -33,6 +33,7 @@ module.exports = {
       '/file': 'http://localhost:8899',
       '/images': 'http://localhost:8899',
       '/standalone': 'http://localhost:8899',
+      '/res': 'http://localhost:8899',
     },
   },
 };

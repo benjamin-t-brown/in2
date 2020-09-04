@@ -1,30 +1,48 @@
-/**
- * Core File for IN2 execution.
- *
- * Add overrides here.
- */
+/*
+global
+G_display
+G_ui
+*/
 
-let addLine = text => {
-  console.log(text);
+let ctr = 0;
+document.addEventListener('keydown', () => {
+  console.log('KEYDOWN');
+  ctr++;
+  G_ui.Dialog(ctr % 2 ? 'left' : 'right');
+});
+
+const load = async () => {
+  console.log('[standalone] Load assets...');
+  await Promise.all([
+    G_display.loadImage('res/images/ada-regular.png', 'ada-regular'),
+    G_display.loadImage('res/images/ada-talking.png', 'ada-talking'),
+    G_display.loadImage('res/images/ada-happy.png', 'ada-happy'),
+    G_display.loadImage('res/images/ada-angry.png', 'ada-angry'),
+    G_display.loadImage('res/images/ada-sarcastic.png', 'ada-sarcastic'),
+    G_display.loadImage('res/images/ada-surprised.png', 'ada-surprised'),
+    G_display.loadImage('res/images/ada-thinking.png', 'ada-thinking'),
+    G_display.loadImage('res/images/iroha-regular.png', 'iroha-regular'),
+    G_display.loadImage('res/images/iroha-angry.png', 'iroha-angry'),
+    G_display.loadImage('res/images/bg-floor1-left.png', 'bg-floor1-left'),
+    G_display.loadImage('res/images/ui-black-bar.png', 'ui-black-bar'),
+  ]);
+  G_display.drawSprite('bg-floor1-left', 0, 0);
+
+  G_ui.Dialog();
 };
-
-let catcher = new (function () {
-  let cb = () => {};
-  this.setK = _cb => (cb = _cb);
-  window.addEventListener('keydown', ev => {
-    if (this.disabled) {
-      return;
-    }
-    cb(String.fromCharCode(ev.which));
-  });
-})();
 
 let lastChooseNodeId;
 let lastChooseNodesSelected;
 var core = /*eslint-disable-line*/ {
-  init() {
+  async init(canvasId) {
+    console.log('[standalone] init');
     lastChooseNodeId = null;
     lastChooseNodesSelected = [];
+    await G_display.init(canvasId);
+    await load();
+    // G_display.setLoop(() => {
+
+    // });
   },
 
   async say(text, cb) {
@@ -99,7 +117,10 @@ var core = /*eslint-disable-line*/ {
     await func.apply(null, args);
   },
 
-  exit() {},
+  exit() {
+    console.log('[standalone] EXIT');
+    G_display.stop();
+  },
 };
 
 var player = /*eslint-disable-line*/ {
@@ -107,8 +128,6 @@ var player = /*eslint-disable-line*/ {
     //curIN2n
     //curIN2f
     //lasIN2f
-    //event
-    //nextFile
   },
   get(path) {
     let _helper = (paths, obj) => {
@@ -153,3 +172,19 @@ var player = /*eslint-disable-line*/ {
     }
   },
 };
+
+var addLine = text => {
+  console.log('ADD LINE', text);
+  console.log(text);
+};
+
+var catcher = new (function () {
+  let cb = () => {};
+  this.setK = _cb => (cb = _cb);
+  window.addEventListener('keydown', ev => {
+    if (this.disabled) {
+      return;
+    }
+    cb(String.fromCharCode(ev.which));
+  });
+})();
