@@ -185,34 +185,30 @@ class Compiler {
           let innerContent = this.compileNode(child, file);
           let declContent = '';
           if (innerContent) {
-            Object.keys(this.declarations)
-              .sort((a, b) => {
-                return a.length < b.length ? 1 : -1;
-              })
-              .forEach(declName => {
-                if (declName.indexOf('DECL') === 0) {
-                  let [, playerKey] = declName.split(' ');
-                  if (!playerKey) {
-                    this.error(
-                      file.name,
-                      node.id,
-                      'Declaration node syntax error: expected variable name after DECL.'
-                    );
-                  }
-                  declContent += `if (player.get('${playerKey}') === undefined ) player.set('${playerKey}', ${this.declarations[declName]});\n`;
-                } else if (declName.indexOf('VAR_') === 0) {
-                  innerContent = innerContent.replace(
-                    new RegExp(declName, 'g'),
-                    this.declarations[declName]
-                  );
-                } else {
+            Object.keys(this.declarations).forEach(declName => {
+              if (declName.indexOf('DECL') === 0) {
+                let [, playerKey] = declName.split(' ');
+                if (!playerKey) {
                   this.error(
                     file.name,
                     node.id,
-                    'Declaration node syntax error: line without DECL or VAR.'
+                    'Declaration node syntax error: expected variable name after DECL.'
                   );
                 }
-              });
+                declContent += `if (player.get('${playerKey}') === undefined ) player.set('${playerKey}', ${this.declarations[declName]});\n`;
+              } else if (declName.indexOf('ALIAS') === 0) {
+                innerContent = innerContent.replace(
+                  new RegExp(declName.slice(6), 'g'),
+                  this.declarations[declName]
+                );
+              } else {
+                this.error(
+                  file.name,
+                  node.id,
+                  'Declaration node syntax error: line without DECL or ALIAS.'
+                );
+              }
+            });
           }
           const ret =
             `if(id === undefined){\n` +
@@ -624,7 +620,7 @@ class Compiler {
             const id = node.id + '_' + i;
             const child_id = node.id + '_' + (i + 1);
             let local_node;
-            if (content[0] === '#' || content.length === 0) {
+            if (content[0] === '+' || content.length === 0) {
               local_node = _create_action_node(content.slice(1), id, child_id);
             } else {
               local_node = _create_text_node(content, id, child_id);

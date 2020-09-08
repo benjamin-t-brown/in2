@@ -46,12 +46,15 @@ let last_choose_node_id = null;
 let last_choose_nodes_selected = [];
 
 exports._core = {
+  in2: true,
   catcher: new KeyCatcher(),
   async init(canvasId) {
     disable_next_say_wait = false;
     last_choose_node_id = null;
     last_choose_nodes_selected = [];
-    await this.origCore.init(canvasId); // I promise this exists
+    if (this.origCore) {
+      await this.origCore.init(canvasId);
+    }
   },
 
   centerAtActiveNode() {
@@ -74,6 +77,9 @@ exports._core = {
 
   async say(text, cb) {
     this.centerAtActiveNode();
+    if (this.origCore) {
+      this.origCore.say(text, cb);
+    }
     if (typeof text === 'object') {
       if (text.length === 1) {
         _console_log(text);
@@ -101,15 +107,19 @@ exports._core = {
     return new Promise(resolve => {
       _console_log();
       _console_log('&nbsp&nbsp&nbsp&nbsp&nbspPress any key to continue...');
-      this.catcher.setKeypressEvent(() => {
+      this.currentCatcherEvent = () => {
         expose.get_state('player-area').remove_line();
         cb && cb();
         resolve();
-      });
+      };
+      this.catcher.setKeypressEvent(this.currentCatcherEvent);
     });
   },
 
   async choose(text, node_id, choices) {
+    if (this.origCore) {
+      this.origCore.choose(text, node_id, choices);
+    }
     return new Promise((resolve, reject) => {
       try {
         this.centerAtActiveNode();
@@ -139,7 +149,7 @@ exports._core = {
           ctr++;
         });
         _console_log('---------');
-        this.catcher.setKeypressEvent(async key => {
+        this.currentCatcherEvent = async key => {
           const choice = actual_choices[key - 1];
           if (choice) {
             last_choose_nodes_selected.push(choice.t);
@@ -151,7 +161,8 @@ exports._core = {
             disable_next_say_wait = false;
             resolve();
           }
-        });
+        };
+        this.catcher.setKeypressEvent(this.currentCatcherEvent);
       } catch (e) {
         console.error('reject');
         reject(e);
@@ -169,8 +180,9 @@ exports._core = {
   },
 
   exit() {
-    this.origCore.exit();
-    // console.log('BYE!');
+    if (this.origCore) {
+      this.origCore.exit();
+    } // console.log('BYE!');
   },
 };
 
@@ -249,22 +261,24 @@ function evalInContext(js, context) {
 }
 
 const postfix = `
-player = {...player, ...exports._player};
-core = {...core, origCore: core, ...exports._core};
-exports._core.origCore = core;
+window.core = window.core.origCore || window.core;
+exports._core.origCore = window.core;
+window.player = {...player, ...exports._player};
+window.core = {...core, origCore: core, ...exports._core};
 `;
 
 let standalone = '';
 exports.runFile = async function (file) {
   _console_log('Success!');
   _console_log('');
-  standalone = (await utils.get('/standalone/')).data;
+  if (!standalone) {
+    standalone = (await utils.get('/standalone/')).data;
+    eval(standalone);
+  }
   const context = {};
   console.log('Now evaluating...');
 
   const evalStr =
-    standalone +
-    '\n' +
     postfix +
     '\n' +
     `

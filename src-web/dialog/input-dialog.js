@@ -85,6 +85,7 @@ module.exports = class InputDialog extends React.Component {
               id: 'InputDialog-input',
               onChange: this.handleInputChange,
               value: this.state.value,
+              spellCheck: this.props.whitespace ? false : '',
               style: {
                 padding: '5px',
                 background: 'rgb(53, 53, 53)',

@@ -48,6 +48,18 @@ module.exports = class PlayerArea extends expose.Component {
     };
 
     this.compile = filename => {
+      if (this.state.visible) {
+        return;
+      }
+
+      const canvas = document.getElementById('player-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const child = canvas.parentElement.children[1];
+      if (child) {
+        child.remove();
+      }
+
       this.show();
       expose.get_state('board').removeAllExtraClasses();
 
@@ -155,7 +167,7 @@ module.exports = class PlayerArea extends expose.Component {
         },
         style: {
           cursor: 'default',
-          height: window.innerHeight / 2 + 'px',
+          height: window.innerHeight / 1.5 + 'px',
           width: '100%',
           backgroundColor: css.colors.TEXT_DARK,
           color: css.colors.TEXT_LIGHT,
@@ -163,7 +175,7 @@ module.exports = class PlayerArea extends expose.Component {
           justifyContent: 'center',
           position: 'fixed',
           left: 0,
-          top: '50%',
+          top: window.innerHeight - window.innerHeight / 1.5,
           borderTop: '2px solid ' + css.colors.PRIMARY_ALT,
         },
       },
@@ -180,12 +192,13 @@ module.exports = class PlayerArea extends expose.Component {
             id: 'close-player',
             style: {
               position: 'absolute',
-              right: '10px',
+              right: '30px',
               top: '5px',
               color: 'red',
               fontSize: '16px',
               cursor: 'pointer',
               fontFamily: 'monospace',
+              background: 'black',
             },
           },
           'Close'

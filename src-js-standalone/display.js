@@ -4,7 +4,7 @@ G_Animation
 G_ui
 */
 
-var G_display = {
+const G_display = {
   pictures: {},
   sprites: {},
   animations: {},
@@ -25,10 +25,10 @@ var G_display = {
     }
     this.canvas.width = 512;
     this.canvas.height = 512;
-    G_ui.Loading();
 
     console.log(
       '[standalone] Display loaded.',
+      this,
       Object.keys(this.pictures).length,
       'images.'
     );
@@ -132,12 +132,12 @@ var G_display = {
   },
   async loadAnimationReel(
     name,
-    spritesheetPath,
+    spriteSheetPath,
     spriteWidth,
     spriteHeight,
     loop
   ) {
-    const image = this.loadImage(spritesheetPath, spritesheetPath);
+    const image = this.loadImage(spriteSheetPath, spriteSheetPath);
     const { width, height } = image;
     const numSpritesX = Math.floor(width / spriteWidth);
     const numSpritesY = Math.floor(height / spriteHeight);
@@ -218,20 +218,24 @@ var G_display = {
     sound.currentTime = 0;
     soundObj.isPlaying = false;
   },
-  drawText(text, x, y) {
-    const ctx = this.getCtx();
+  drawText(text, x, y, canvas) {
+    const ctx = canvas?.getContext('2d') || this.getCtx();
     ctx.fillStyle = 'white';
     ctx.font = '16px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(text, x, y);
   },
-  drawRect(x, y, w, h, c) {
-    const ctx = this.getCtx();
+  drawRect(x, y, w, h, c, canvas) {
+    const ctx = canvas?.getContext('2d') || this.getCtx();
     ctx.fillStyle = c;
     ctx.fillRect(x, y, w, h);
   },
+  clearRect(x, y, w, h, canvas) {
+    const ctx = canvas?.getContext('2d') || this.getCtx();
+    ctx.clearRect(x, y, w, h);
+  },
   drawSprite(sprite, x, y, params) {
-    const ctx = this.getCtx();
+    const ctx = params?.canvas || this.getCtx();
     let s = this.getSprite(sprite);
     let { width, height, centered, bottom, rotation, opacity, scale } =
       params || {};
@@ -282,6 +286,7 @@ var G_display = {
   },
   drawSpriteToCanvas(sprite, canvas) {
     this.setCanvas(canvas);
+    this.clearRect(0, 0, canvas.width, canvas.height);
     this.drawSprite(sprite, 0, 0);
     this.restoreCanvas();
   },

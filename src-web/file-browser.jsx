@@ -185,7 +185,6 @@ module.exports = class FileBrowser extends expose.Component {
     });
   }
   loadFile(name, cb) {
-    console.log('try load file', name, this.props.current_file_name);
     if (!name) {
       return;
     }

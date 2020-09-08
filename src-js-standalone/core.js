@@ -4,14 +4,14 @@ G_display
 G_ui
 */
 
-let ctr = 0;
-document.addEventListener('keydown', () => {
-  console.log('KEYDOWN');
-  ctr++;
-  G_ui.Dialog(ctr % 2 ? 'left' : 'right');
-});
-
+let loaded = false;
+const IS_IN2 = !!window.IN2;
 const load = async () => {
+  console.log('IN2', window.IN2);
+  if (loaded) {
+    console.log('[standalone] Already loaded.');
+    return;
+  }
   console.log('[standalone] Load assets...');
   await Promise.all([
     G_display.loadImage('res/images/ada-regular.png', 'ada-regular'),
@@ -26,14 +26,12 @@ const load = async () => {
     G_display.loadImage('res/images/bg-floor1-left.png', 'bg-floor1-left'),
     G_display.loadImage('res/images/ui-black-bar.png', 'ui-black-bar'),
   ]);
-  G_display.drawSprite('bg-floor1-left', 0, 0);
-
-  G_ui.Dialog();
+  loaded = true;
 };
 
 let lastChooseNodeId;
 let lastChooseNodesSelected;
-var core = /*eslint-disable-line*/ {
+var core = (window.core = /*eslint-disable-line*/ {
   async init(canvasId) {
     console.log('[standalone] init');
     lastChooseNodeId = null;
@@ -46,6 +44,7 @@ var core = /*eslint-disable-line*/ {
   },
 
   async say(text, cb) {
+    console.log('[standalone] SAY INNER', text);
     if (typeof text === 'object') {
       if (text.length === 1) {
         addLine(text);
@@ -64,9 +63,11 @@ var core = /*eslint-disable-line*/ {
       }
     }
 
+    if (IS_IN2) {
+      return;
+    }
+
     return new Promise(resolve => {
-      addLine();
-      addLine('&nbsp&nbsp&nbsp&nbsp&nbspPress any key to continue...');
       catcher.setK(() => {
         cb && cb();
         resolve();
@@ -75,12 +76,10 @@ var core = /*eslint-disable-line*/ {
   },
   async choose(text, nodeId, choices) {
     return new Promise(resolve => {
-      const sep = '----------';
       if (text) {
         addLine(text);
         addLine();
       }
-      addLine(sep, 'choiceStyle');
       const actualChoices = choices.filter(choice => {
         if (choice.c()) {
           return true;
@@ -97,7 +96,6 @@ var core = /*eslint-disable-line*/ {
         addLine('<b>  ' + ctr + '.) ' + choice.t + '</b>', 'choiceStyle');
         ctr++;
       });
-      addLine(sep, 'choiceStyle');
       catcher.setK(async key => {
         const choice = actualChoices[key - 1];
         if (choice) {
@@ -120,15 +118,17 @@ var core = /*eslint-disable-line*/ {
   exit() {
     console.log('[standalone] EXIT');
     G_display.stop();
+    // removeEventListener('onkeydown', onKeyDown);
   },
-};
+});
 
-var player = /*eslint-disable-line*/ {
+var player = (window.player = /*eslint-disable-line*/ {
   state: {
     //curIN2n
     //curIN2f
     //lasIN2f
   },
+  init() {},
   get(path) {
     let _helper = (paths, obj) => {
       let k = paths.shift();
@@ -167,15 +167,123 @@ var player = /*eslint-disable-line*/ {
     _helper(path.split('.'), this.state);
   },
   setIfUnset(path, val) {
-    if (this.get(path) === null) {
+    if (this.get(path) === undefined) {
       this.set(path, val);
     }
   },
-};
+});
+
+var engine = (window.engine = {
+  CONVERSATION_KEY: 'conversation',
+  setBackground(sprite) {
+    G_display.drawSprite(sprite, 0, 0);
+  },
+  setConversation1(label, baseSprite) {
+    player.set(this.CONVERSATION_KEY, {
+      leftLabel: label,
+      leftBaseSprite: baseSprite,
+      leftSprite: baseSprite,
+      rightLabel: '',
+      rightBaseSprite: '',
+      rightSprite: '',
+    });
+  },
+  setConversation2(leftLabel, leftBaseSprite, rightLabel, rightBaseSprite) {
+    player.set(this.CONVERSATION_KEY, {
+      leftLabel,
+      leftBaseSprite,
+      leftSprite: '',
+      rightLabel,
+      rightBaseSprite,
+      rightSprite: '',
+    });
+  },
+  emote(label, spriteName) {
+    const conversation = player.get(this.CONVERSATION_KEY);
+    if (!conversation) {
+      throw new Error('No conversation has been set, cannot emote');
+    }
+    if (label === conversation.leftLabel) {
+      conversation.leftSprite = spriteName;
+      conversation.rightSprite = '';
+    } else if (label === conversation.rightLabel) {
+      conversation.rightSprite = spriteName;
+      conversation.leftSprite = '';
+    }
+  },
+  setSprites(leftSpriteName, rightSpriteName) {
+    const conversation = player.get(this.CONVERSATION_KEY);
+    if (!conversation) {
+      throw new Error('No conversation has been set, cannot setSprites');
+    }
+    conversation.leftSprite = leftSpriteName;
+    conversation.rightSprite = rightSpriteName;
+  },
+  unsetSprites() {
+    const conversation = player.get(this.CONVERSATION_KEY);
+    if (!conversation) {
+      throw new Error('No conversation has been set, cannot unsetSprites');
+    }
+    conversation.leftSprite = '';
+    conversation.rightSprite = '';
+  },
+});
 
 var addLine = text => {
-  console.log('ADD LINE', text);
-  console.log(text);
+  let {
+    leftLabel,
+    leftBaseSprite,
+    leftSprite,
+    rightLabel,
+    rightBaseSprite,
+    rightSprite,
+  } = player.get(engine.CONVERSATION_KEY) || {
+    leftLabel: '',
+    leftSprite: '',
+    leftBaseSprite: '',
+    rightLabel: '',
+    rightSprite: '',
+    rightBaseSprite: '',
+  };
+
+  let speaker = '';
+  if (text.match(/^([,\-a-zA-Z0-9]*): /)) {
+    const [label, emotion, emotion2] = text
+      .slice(0, text.indexOf(':'))
+      .split(',');
+
+    if (label === leftLabel) {
+      speaker = 'left';
+      if (emotion) {
+        leftSprite = emotion;
+      }
+    } else if (label === rightLabel) {
+      speaker = 'right';
+      if (emotion) {
+        rightSprite = emotion;
+      }
+    } else if (leftLabel && rightLabel) {
+      speaker = 'both';
+      if (emotion) {
+        leftSprite = emotion;
+      }
+      if (emotion2) {
+        rightSprite = emotion2;
+      }
+    }
+    text = text.slice(text.indexOf(':') + 1).trim();
+    console.log('[standalone] got a label:', label, emotion, speaker, text);
+  }
+
+  G_ui.Dialog({
+    text,
+    leftPortraitSprite: leftSprite || leftBaseSprite,
+    rightPortraitSprite: rightSprite || rightBaseSprite,
+    leftPortraitLabel: leftLabel,
+    rightPortraitLabel: rightLabel,
+    speaker,
+    visible: true,
+  });
 };
 
 var catcher = new (function () {
