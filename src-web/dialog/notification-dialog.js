@@ -13,52 +13,68 @@ module.exports = class NotificationDialog extends React.Component {
   }
 
   render() {
-    return React.createElement(
-      'div',
-      {
-        style: {
-          position: 'absolute',
-          width: '300px',
-          padding: '5px',
-          top: '300px',
-          left: window.innerWidth / 2 - 140 + 'px',
-          backgroundColor: css.colors.SECONDARY,
-          border: '4px solid ' + css.colors.SECONDARY_ALT,
-          color: css.colors.TEXT_LIGHT,
-        },
-      },
-      React.createElement(
-        'div',
-        {
-          style: {
-            padding: '5px',
-          },
-        },
-        this.props.text
-      ),
-      React.createElement(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            justifyContent: 'flex-end',
-          },
-        },
-        React.createElement(
+    return (
+      <div
+        style={{
+          left: 0,
+          top: 0,
+          position: 'fixed',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        {React.createElement(
           'div',
           {
-            className: 'confirm-button',
-            onClick: this.handleConfirmClick,
+            style: {
+              maxWidth: '600px',
+              padding: '1rem',
+              backgroundColor: css.colors.SECONDARY,
+              border: '4px solid ' + css.colors.SECONDARY_ALT,
+              color: css.colors.TEXT_LIGHT,
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '128px',
+              justifyContent: 'space-between',
+            },
           },
           React.createElement(
-            'span',
+            'div',
             {
-              className: 'no-select',
+              style: {
+                padding: '5px',
+              },
             },
-            'Okay'
+            this.props.text
+          ),
+          React.createElement(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                justifyContent: 'flex-end',
+              },
+            },
+            React.createElement(
+              'div',
+              {
+                className: 'confirm-button',
+                onClick: this.handleConfirmClick,
+              },
+              React.createElement(
+                'span',
+                {
+                  className: 'no-select',
+                },
+                'Okay'
+              )
+            )
           )
-        )
-      )
+        )}
+      </div>
     );
   }
 };

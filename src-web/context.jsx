@@ -128,6 +128,9 @@ exp.show_context_menu = function (board, elem) {
       cbs.linkNode = function (parent) {
         this.enterLinkMode(parent);
       }.bind(board);
+      cbs.setNodeCondition = function (parent) {
+        this.enterLinkMode(parent);
+      }.bind(board);
       cbs.createTextChoiceNode = function (parent) {
         this.addNode(parent, 'choice_text');
       }.bind(board);
@@ -176,6 +179,10 @@ exp.show_context_menu = function (board, elem) {
         );
       }.bind(board);
     }
+  } else if (file_node.type === 'choice_conditional') {
+    cbs.setNodeCondition = function (parent) {
+      this.enterLinkModeRef(parent);
+    }.bind(board);
   }
 
   exp.show(x, y, file_node, board.file, cbs);

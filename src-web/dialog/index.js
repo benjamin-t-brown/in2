@@ -4,6 +4,7 @@ const ConfirmDialog = require('./confirm-dialog');
 const InputDialog = require('./input-dialog');
 const NotificationDialog = require('./notification-dialog');
 const InputWithSelectDialog = require('./input-with-select-dialog');
+const LoadingDialog = require('./loading-dialog');
 const core = require('core-in2');
 
 window.current_confirm = null;
@@ -112,3 +113,10 @@ exports.hide = function () {
 exports.is_visible = function () {
   return is_visible;
 };
+
+exports.show_loading = function () {
+  show();
+  ReactDOM.render(<LoadingDialog />, document.getElementById('dialog'));
+};
+
+exports.hide_loading = exports.hide;

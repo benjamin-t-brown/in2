@@ -22,6 +22,7 @@ module.exports = {
     ],
   },
   devServer: {
+    port: 8898,
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
     hot: true,
@@ -34,6 +35,7 @@ module.exports = {
       '/images': 'http://localhost:8899',
       '/standalone': 'http://localhost:8899',
       '/res': 'http://localhost:8899',
+      '/export': 'http://localhost:8899',
     },
   },
 };

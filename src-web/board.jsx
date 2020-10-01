@@ -13,9 +13,15 @@ const BOARD_SIZE_PIXELS = 6400;
 export const getNodeId = () => {
   let id;
   do {
-    id = utils.random_id(3);
+    id = utils.random_id(5);
   } while (document.getElementById(id));
   return id;
+};
+
+const waitMs = ms => {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 };
 
 window.on_node_click = function (elem) {
@@ -46,6 +52,10 @@ window.on_node_mouseout = function (elem) {
   console.log('MouseOut Event Not Overwritten!', elem);
 };
 
+window.center_on_active_node = function (elem) {
+  expose.get_state('board').centerOnNode(elem);
+};
+
 class Board extends expose.Component {
   constructor(props) {
     super(props);
@@ -65,6 +75,7 @@ class Board extends expose.Component {
     this.lastOffsetX = 0;
     this.lastOffsetY = 0;
     this.linkNode = null;
+    this.linkNodeRef = null;
     this.dragSet = [];
     this.zoom = 1;
     this.maxZoom = 1;
@@ -214,21 +225,29 @@ class Board extends expose.Component {
     this.onDiagramDblClick = () => {};
 
     this.onNodeClick = window.on_node_click = elem => {
-      let file_node = this.getNode(elem.id);
+      let selectedNode = this.getNode(elem.id);
       if (this.linkNode) {
-        let err = this.addLink(this.linkNode, file_node);
+        let err = this.addLink(this.linkNode, selectedNode);
         if (err) {
           console.error('Error', 'Cannot create link', err);
           dialog.show_notification('Cannot create link. ' + err);
         }
         this.exitLinkMode();
+      } else if (this.linkNodeRef) {
+        this.setNodeContent(
+          this.linkNodeRef,
+          `player.get('nodes.${selectedNode.id}')`
+        );
+        this.linkNodeRef.rel = selectedNode.id;
+        this.buildDiagram();
+        this.exitLinkMode();
       } else if (utils.is_shift() || utils.is_ctrl()) {
-        let ind = this.dragSet.indexOf(file_node.id);
+        let ind = this.dragSet.indexOf(selectedNode.id);
         if (ind === -1) {
-          this.plumb.addToDragSelection(file_node.id);
-          this.dragSet.push(file_node.id);
+          this.plumb.addToDragSelection(selectedNode.id);
+          this.dragSet.push(selectedNode.id);
         } else {
-          this.plumb.removeFromDragSelection(file_node.id);
+          this.plumb.removeFromDragSelection(selectedNode.id);
           this.dragSet.splice(ind, 1);
         }
       }
@@ -254,10 +273,7 @@ class Board extends expose.Component {
           expose.get_state('file-browser').file_list,
           file_node.content,
           content => {
-            file_node.content = content;
-            document.getElementById(
-              file_node.id
-            ).children[0].innerHTML = content;
+            this.setNodeContent(file_node, content);
             this.buildDiagram();
             this.saveFile();
           }
@@ -273,10 +289,8 @@ class Board extends expose.Component {
           file_node,
           content => {
             dialog.set_shift_req(false);
-            file_node.content = content;
-            document.getElementById(
-              file_node.id
-            ).children[0].innerHTML = content;
+            this.setNodeContent(file_node, content);
+            file_node.rel = null;
             this.buildDiagram();
             this.saveFile();
           },
@@ -287,8 +301,8 @@ class Board extends expose.Component {
       } else {
         dialog.set_shift_req(false);
         dialog.show_input(file_node, content => {
-          file_node.content = content;
-          document.getElementById(file_node.id).children[0].innerHTML = content;
+          this.setNodeContent(file_node, content);
+          file_node.rel = null;
           this.buildDiagram();
           this.saveFile();
         });
@@ -384,24 +398,43 @@ class Board extends expose.Component {
       });
     };
 
-    this.centerOnNode = nodeId => {
+    this.centerOnNode = async nodeId => {
       const n = this.getNode(nodeId);
       if (n) {
-        const area = document
-          .getElementById('player-area')
-          .getBoundingClientRect();
-        const node = document.getElementById(nodeId).getBoundingClientRect();
-        this.offsetX =
-          parseInt(n.left) - (area.width / 2 - 260) - node.width / 2;
-        this.offsetY =
-          parseInt(n.top) -
-          area.height / 2 -
-          node.height / 2 +
-          window.innerHeight / 4;
-        //const lastZoom = this.zoom;
-        this.zoom = 1;
-        this.renderAtOffset();
-        this.getPlumb().setZoom(this.zoom);
+        if (expose.get_state('player-area').visible) {
+          const area = document
+            .getElementById('player-area')
+            .getBoundingClientRect();
+          const node = document.getElementById(nodeId).getBoundingClientRect();
+          this.offsetX =
+            parseInt(n.left) + node.width / 2 - (window.innerWidth - 300) / 2;
+          this.offsetY =
+            parseInt(n.top) -
+            area.height / 2 -
+            node.height / 2 +
+            window.innerHeight / 4;
+          //const lastZoom = this.zoom;
+          this.zoom = 1;
+          this.renderAtOffset();
+          this.getPlumb().setZoom(this.zoom);
+        } else {
+          const nodeElem = document.getElementById(nodeId);
+          const node = nodeElem.getBoundingClientRect();
+          this.offsetX =
+            parseInt(n.left) + node.width / 2 - (window.innerWidth - 300) / 2;
+          this.offsetY =
+            parseInt(n.top) + node.height / 2 - window.innerHeight / 2;
+          this.zoom = 1;
+          this.renderAtOffset();
+          this.getPlumb().setZoom(this.zoom);
+
+          for (let i = 0; i < 3; i++) {
+            nodeElem.style.opacity = '0.25';
+            await waitMs(250);
+            nodeElem.style.opacity = '1';
+            await waitMs(250);
+          }
+        }
 
         // TODO add this
         // const { offsetX, offsetY, scale } = utils.zoomWithFocalAndDelta({
@@ -626,8 +659,19 @@ class Board extends expose.Component {
         'no-drag linking ' + this.props.classes.diagramArea;
     }, 150);
   }
+  enterLinkModeRef(parent) {
+    expose.set_state('status-bar', {
+      isInLinkMode: true,
+    });
+    setTimeout(() => {
+      this.linkNodeRef = parent;
+      this.diagramContainer.current.class =
+        'no-drag linking ' + this.props.classes.diagramArea;
+    }, 150);
+  }
   exitLinkMode() {
     this.linkNode = false;
+    this.linkNodeRef = false;
     this.diagramContainer.current.class =
       'no-drag movable ' + this.props.classes.diagramArea;
     expose.set_state('status-bar', {
@@ -646,6 +690,11 @@ class Board extends expose.Component {
     } else {
       return null;
     }
+  }
+
+  setNodeContent(node, content) {
+    node.content = content;
+    document.getElementById(node.id).children[1].innerHTML = content;
   }
 
   getChildren(node) {
@@ -772,6 +821,8 @@ class Board extends expose.Component {
     this.file.links.push(link);
     this.saveFile();
     this.buildDiagram();
+    this.renderAtOffset();
+    this.getPlumb().setZoom(this.zoom);
     return node;
   }
 
@@ -929,6 +980,13 @@ class Board extends expose.Component {
       `onmouseenter="on_node_mouseover(${node.id})" ` +
       `onmouseout="on_node_mouseout(${node.id})" ` +
       `>` +
+      `<div class="node-id">${node.id}${
+        node.rel
+          ? ` -> <span class="node-id-ref" onclick="center_on_active_node('${node.rel}')">` +
+            node.rel +
+            '</span>'
+          : ''
+      }</div>` +
       `<div class="item-content" ${content_style}><span class="no-select">${node.content}</span></div>` +
       `<div class="anchor-to" id="${node.id}_to"></div>` +
       `<div class="anchor-from" id="${node.id}_from"></div>` +

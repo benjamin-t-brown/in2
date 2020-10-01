@@ -29,13 +29,9 @@ const load = async () => {
   loaded = true;
 };
 
-let lastChooseNodeId;
-let lastChooseNodesSelected;
 var core = (window.core = /*eslint-disable-line*/ {
   async init(canvasId) {
     console.log('[standalone] init');
-    lastChooseNodeId = null;
-    lastChooseNodesSelected = [];
     await G_display.init(canvasId);
     await load();
     // G_display.setLoop(() => {
@@ -45,79 +41,99 @@ var core = (window.core = /*eslint-disable-line*/ {
 
   async say(text, cb) {
     console.log('[standalone] SAY INNER', text);
-    if (typeof text === 'object') {
-      if (text.length === 1) {
-        addLine(text);
+    try {
+      if (typeof text === 'object') {
+        if (text.length === 1) {
+          addLine(text);
+        } else {
+          core.say(text[0], () => {
+            core.say(text.slice(1), cb);
+          });
+          return;
+        }
       } else {
-        core.say(text[0], () => {
-          core.say(text.slice(1), cb);
+        if (text.length <= 1) {
+          cb && cb();
+          return;
+        } else {
+          addLine(text);
+        }
+      }
+
+      if (IS_IN2) {
+        return;
+      }
+
+      return new Promise(resolve => {
+        catcher.setK(() => {
+          cb && cb();
+          resolve();
         });
-        return;
-      }
-    } else {
-      if (text.length <= 1) {
-        cb && cb();
-        return;
-      } else {
-        addLine(text);
-      }
-    }
-
-    if (IS_IN2) {
-      return;
-    }
-
-    return new Promise(resolve => {
-      catcher.setK(() => {
-        cb && cb();
-        resolve();
       });
-    });
+    } catch (e) {
+      console.log('Caught something', e);
+    }
   },
   async choose(text, nodeId, choices) {
     return new Promise(resolve => {
       if (text) {
-        addLine(text);
-        addLine();
+        addLine('both: ' + text);
+      } else {
+        addLine('both: Choose what?');
       }
-      const actualChoices = choices.filter(choice => {
-        if (choice.c()) {
-          return true;
-        } else {
-          return false;
-        }
-      });
-      if (lastChooseNodeId !== nodeId) {
-        lastChooseNodeId = nodeId;
-        lastChooseNodesSelected = [];
-      }
-      let ctr = 1;
-      actualChoices.forEach(choice => {
-        addLine('<b>  ' + ctr + '.) ' + choice.t + '</b>', 'choiceStyle');
-        ctr++;
-      });
-      catcher.setK(async key => {
-        const choice = actualChoices[key - 1];
-        if (choice) {
-          lastChooseNodesSelected.push(choice.t);
-          catcher.setK(() => {});
-          addLine();
-          addLine(choice.t, 'chosenStyle');
-          addLine();
-          await choice.cb();
-          resolve();
-        }
+      const actualChoices = choices
+        .filter(choice => {
+          if (choice.c()) {
+            return true;
+          } else {
+            return false;
+          }
+        })
+        .map((choice, i) => {
+          return {
+            text: i + 1 + '.) ' + choice.t,
+            cb: async () => {
+              this.onChoose();
+              await choice.cb();
+              resolve();
+            },
+          };
+        });
+      G_ui.Choices({
+        choices: actualChoices,
+        visible: true,
       });
     });
   },
+  onChoose() {
+    G_ui.Choices({
+      choices: [],
+      visible: false,
+    });
+  },
   async defer(func, args) {
-    args = args || [player.get('curIN2n'), player.get('curIN2f')];
+    args = args || [this.get('curIN2n'), this.get('curIN2f')];
     await func.apply(null, args);
+  },
+
+  once() {
+    const nodeId = this.get('curIN2n');
+    const key = 'once.' + nodeId;
+    if (!this.get(key)) {
+      this.set(key);
+      return true;
+    }
+    return false;
   },
 
   exit() {
     console.log('[standalone] EXIT');
+    catcher.removeListener();
     G_display.stop();
+    G_ui.Choices({
+      choices: [],
+      visible: false,
+    });
     // removeEventListener('onkeydown', onKeyDown);
   },
 });
@@ -147,6 +163,12 @@ var player = (window.player = /*eslint-disable-line*/ {
     return _helper(path.split('.'), this.state);
   },
   set(path, val) {
+    if (path === 'curIN2n') {
+      return this.set('nodes.' + val);
+    }
+    if (path === 'curIN2f') {
+      return this.set('files.' + val.replace('.json', ''));
+    }
     val = val === undefined ? true : val;
     let _helper = (keys, obj) => {
       let k = keys.shift();
@@ -272,7 +294,6 @@ var addLine = text => {
       }
     }
     text = text.slice(text.indexOf(':') + 1).trim();
-    console.log('[standalone] got a label:', label, emotion, speaker, text);
   }
 
   G_ui.Dialog({
@@ -289,10 +310,14 @@ var addLine = text => {
 var catcher = new (function () {
   let cb = () => {};
   this.setK = _cb => (cb = _cb);
-  window.addEventListener('keydown', ev => {
+  const listener = ev => {
     if (this.disabled) {
       return;
     }
     cb(String.fromCharCode(ev.which));
-  });
+  };
+  this.removeListener = () => {
+    window.removeEventListener('keydown', listener);
+  };
+  window.addEventListener('keydown', listener);
 })();

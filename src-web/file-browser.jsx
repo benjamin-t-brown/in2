@@ -172,12 +172,9 @@ module.exports = class FileBrowser extends expose.Component {
       dialog.show_notification(err);
       return;
     }
-    console.log('Rename', old_name, 'to', new_name);
     utils.get('/file/' + old_name, resp => {
-      console.log('got old data');
       resp.data.name = new_name;
       utils.post('/file/' + new_name, resp.data, () => {
-        console.log('saved new file');
         this.deleteFile(old_name, () => {
           this.loadFile(new_name);
         });
@@ -354,12 +351,6 @@ module.exports = class FileBrowser extends expose.Component {
           ev.stopPropagation();
           ev.nativeEvent.stopImmediatePropagation();
         },
-        onMouseEnter: () => {
-          //$('#diagram-parent').panzoom('disable');
-        },
-        onMouseLeave: () => {
-          //$('#diagram-parent').panzoom('enable');
-        },
         onWheel: ev => {
           ev.stopPropagation();
         },
@@ -472,6 +463,7 @@ module.exports = class FileBrowser extends expose.Component {
         <div
           className="confirm-button confirm-button-player"
           onClick={async () => {
+            dialog.show_loading();
             const resp = await new Promise(resolve => {
               utils.get('/compile', resolve);
             });
@@ -484,6 +476,7 @@ module.exports = class FileBrowser extends expose.Component {
               states = await core.runFileDry(resp.data.file);
             }
             dialog.set_shift_req(true);
+            dialog.hide_loading();
             dialog.show_input(
               {
                 content: JSON.stringify(states, null, 2),
@@ -497,7 +490,79 @@ module.exports = class FileBrowser extends expose.Component {
             );
           }}
         >
-          PLAYER STORE
+          Player State
+        </div>
+        <div
+          className="confirm-button confirm-button-player"
+          onClick={async () => {
+            const saveData = core.getSaveData() || {};
+            dialog.set_shift_req(true);
+            dialog.show_input(
+              {
+                content: JSON.stringify(saveData, null, 2),
+              },
+              result => {
+                const data = JSON.parse(result);
+                core.setSaveData(data);
+                dialog.set_shift_req(false);
+              },
+              () => {
+                dialog.set_shift_req(false);
+              }
+            );
+          }}
+        >
+          Save Data
+        </div>
+      </div>,
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          className="confirm-button confirm-button-export"
+          onClick={async () => {
+            dialog.show_loading();
+            const resp = await new Promise(resolve => {
+              utils.post('/export', {}, resolve);
+            });
+            dialog.hide_loading();
+            if (resp.data.err) {
+              dialog.show_notification(
+                <>
+                  <div>Export Failure</div>
+                  <div>
+                    {resp.data.err
+                      .filter((_, i) => i < 10)
+                      .map(({ text, node_id, filename }) => (
+                        <div
+                          key={node_id}
+                          style={{
+                            margin: '8px',
+                          }}
+                        >
+                          <span style={{ color: '#ff6565' }}>
+                            {node_id}:{filename}
+                          </span>{' '}
+                          <span>{text}</span>
+                        </div>
+                      ))}
+                  </div>
+                </>
+              );
+            } else {
+              dialog.show_notification(
+                <>
+                  <div>Export successful!</div>
+                  <div style={{ marginTop: '0.5rem' }}>{resp.data.msg}</div>
+                </>
+              );
+            }
+          }}
+        >
+          EXPORT
         </div>
       </div>,
       <div

@@ -4,6 +4,18 @@ const utils = require('utils');
 
 window.IN2 = true;
 
+const LOCAL_STORAGE_SAVE_STATE_KEY = 'in2_save_state';
+
+exports.setSaveData = initialState => {
+  localStorage.setItem(
+    LOCAL_STORAGE_SAVE_STATE_KEY,
+    JSON.stringify(initialState)
+  );
+};
+exports.getSaveData = () => {
+  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_SAVE_STATE_KEY) || {});
+};
+
 const _console_log = text => {
   expose.get_state('player-area').add_line(text || '');
 };
@@ -30,6 +42,10 @@ class KeyCatcher {
 
   setKeypressEvent(cb) {
     this.cb = cb;
+  }
+
+  unsetKeypressEvent() {
+    window.removeEventListener('keydown', this.onKeyPress);
   }
 
   disable() {
@@ -117,9 +133,6 @@ exports._core = {
   },
 
   async choose(text, node_id, choices) {
-    if (this.origCore) {
-      this.origCore.choose(text, node_id, choices);
-    }
     return new Promise((resolve, reject) => {
       try {
         this.centerAtActiveNode();
@@ -149,7 +162,7 @@ exports._core = {
           ctr++;
         });
         _console_log('---------');
-        this.currentCatcherEvent = async key => {
+        const onChoose = async key => {
           const choice = actual_choices[key - 1];
           if (choice) {
             last_choose_nodes_selected.push(choice.t);
@@ -157,12 +170,40 @@ exports._core = {
             _console_log();
             _console_log(choice.t);
             _console_log();
+            if (this.origCore) {
+              this.origCore.onChoose();
+            }
             await choice.cb();
             disable_next_say_wait = false;
             resolve();
           }
         };
+        this.currentCatcherEvent = onChoose;
         this.catcher.setKeypressEvent(this.currentCatcherEvent);
+        if (this.origCore) {
+          this.origCore.choose(
+            text,
+            node_id,
+            choices.map(choice => {
+              return {
+                ...choice,
+                cb: async () => {
+                  last_choose_nodes_selected.push(choice.t);
+                  this.catcher.setKeypressEvent(() => {});
+                  _console_log();
+                  _console_log(choice.t);
+                  _console_log();
+                  if (this.origCore) {
+                    this.origCore.onChoose();
+                  }
+                  await choice.cb();
+                  disable_next_say_wait = false;
+                  resolve();
+                },
+              };
+            })
+          );
+        }
       } catch (e) {
         console.error('reject');
         reject(e);
@@ -180,6 +221,7 @@ exports._core = {
   },
 
   exit() {
+    this.catcher.setKeypressEvent(function () {});
     if (this.origCore) {
       this.origCore.exit();
     } // console.log('BYE!');
@@ -187,10 +229,10 @@ exports._core = {
 };
 
 exports._player = {
-  state: {},
+  state: exports.getSaveData(),
   name: 'default',
   init() {
-    this.state = {};
+    this.state = exports.getSaveData();
   },
 
   print() {
@@ -216,6 +258,12 @@ exports._player = {
   },
 
   set(path, val) {
+    if (path === 'curIN2n') {
+      this.set('nodes.' + val);
+    }
+    if (path === 'curIN2f') {
+      this.set('files.' + val.replace('.json', ''));
+    }
     val = val === undefined ? true : val;
     let _helper = (keys, obj) => {
       let k = keys.shift();
@@ -235,6 +283,16 @@ exports._player = {
 
     _helper(path.split('.'), this.state);
   },
+
+  once() {
+    const nodeId = this.get('curIN2n');
+    const key = 'once.' + nodeId;
+    if (!this.get(key)) {
+      this.set(key);
+      return true;
+    }
+    return false;
+  },
 };
 
 exports.core = function () {
@@ -242,7 +300,7 @@ exports.core = function () {
 };
 
 exports.player = function () {
-  return exports._player;
+  return window.player;
 };
 
 exports.disable = function () {
@@ -254,6 +312,10 @@ exports.enable = function () {
   exports._core.catcher.enable();
 };
 
+window.addEventListener('unhandledrejection', function (promiseRejectionEvent) {
+  _console_log('EXECUTION WARNING ' + promiseRejectionEvent.reason);
+});
+
 function evalInContext(js, context) {
   return function () {
     return eval(js); //eslint-disable-line no-eval
@@ -262,9 +324,9 @@ function evalInContext(js, context) {
 
 const postfix = `
 window.core = window.core.origCore || window.core;
-exports._core.origCore = window.core;
-window.player = {...player, ...exports._player};
-window.core = {...core, origCore: core, ...exports._core};
+window._core.origCore = window.core;
+window.player = {...player, ...window._player};
+window.core = {...core, origCore: core, ...window._core};
 `;
 
 let standalone = '';
@@ -275,10 +337,12 @@ exports.runFile = async function (file) {
     standalone = (await utils.get('/standalone/')).data;
     eval(standalone);
   }
-  const context = {};
   console.log('Now evaluating...');
+  window._core = exports._core;
+  window._player = exports._player;
 
   const evalStr =
+    '{\ntry {' +
     postfix +
     '\n' +
     `
@@ -291,9 +355,21 @@ async function main() {
   run();
 }
 main();
-  `;
+} catch (e) {
+console.error(e);
+alert('There was an error evaluating the script.');
+}
+}`;
   try {
-    evalInContext(evalStr, context);
+    const existingScript = document.getElementById('in2-injection');
+    if (existingScript) {
+      existingScript.remove();
+    }
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.innerHTML = evalStr;
+    script.id = 'in2-injection';
+    document.body.appendChild(script);
     window.player = exports._player;
   } catch (e) {
     console.error(e, e.stack);
@@ -308,13 +384,22 @@ exports.runFileDry = async function (file) {
     const fileNames = {};
     for (let fileName in prevState) {
       for (let key in prevState[fileName]) {
-        if (keys[key]) {
+        const type = typeof keys[key];
+        if (type === 'string' || type === 'number') {
           errors.push(
             `Duplicate key declared: '${key}' (${fileName}) and (${fileNames[key]})`
           );
         } else {
-          keys[key] = prevState[fileName][key];
-          fileNames[key] = fileName;
+          if (type === 'object') {
+            keys[key] = {
+              ...keys[key],
+              ...prevState[fileName][key],
+            };
+            fileNames[key] = fileName;
+          } else {
+            keys[key] = prevState[fileName][key];
+            fileNames[key] = fileName;
+          }
         }
       }
     }
@@ -327,6 +412,8 @@ exports.runFileDry = async function (file) {
   standalone = (await utils.get('/standalone/')).data;
   const context = {};
   const evalStr = standalone + '\n' + postfix + '\n(' + file + ')(true)';
+  window._core = exports._core;
+  window._player = exports._player;
   console.log('Now evaluating dry...');
   const states = {};
   try {

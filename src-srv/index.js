@@ -3,10 +3,24 @@ const fs = require('fs');
 const exec = require('child_process').exec;
 const argv = require('minimist')(process.argv.slice(2));
 
+const execAsync = async command => {
+  return new Promise(resolve => {
+    console.log(command);
+    exec(command, (err, stdout, stderr) => {
+      if (err) {
+        console.error(err, stdout, stderr);
+        return;
+      }
+      resolve(stdout);
+    });
+  });
+};
+
 const DIST_DIR = __dirname + '/../dist/';
 const SAVE_DIR = __dirname + '/../save/';
 const COMPILER_DIR = __dirname + '/../src-compile/';
 const COMPILER_OUT = __dirname + '/../src-compile/out';
+const EXPORT_DIR = __dirname + '/../../sadelica-new-world/src/js/';
 
 let config;
 try {
@@ -49,18 +63,15 @@ process.on('exit', function () {
 
 console.log('Now listening on port: ' + PORT);
 
-function on_exec_compiled(resp, cb, err, stdout) {
-  const ret = {
-    success: true,
-  };
+const getErrorsFromCompilation = stdout => {
+  let errors = null;
   console.log('STDOUT', stdout);
   if (stdout.search('-------------') > -1) {
-    ret.success = false;
     const ind1 = stdout.indexOf('-------------');
     const ind2 = stdout.lastIndexOf('-------------');
     const error_text = stdout.slice(ind1 + 14, ind2 - 1);
     const error_list = error_text.split('\n\n');
-    ret.errors = error_list.map(error => {
+    errors = error_list.map(error => {
       const arr = error.split('|');
       const filename = arr[0] || 'none';
       const node_id = arr[1] || 'none';
@@ -76,8 +87,17 @@ function on_exec_compiled(resp, cb, err, stdout) {
         filename: filename.trim(),
       };
     });
-    console.log('ERRORS', ret.errors);
+    console.log('ERRORS', errors);
   }
+  return errors;
+};
+
+function on_exec_compiled(resp, cb, err, stdout) {
+  const ret = {
+    success: true,
+    errors: getErrorsFromCompilation(stdout),
+  };
+  ret.success = ret.errors && ret.errors.length > 0 ? false : true;
   cb(err, ret);
 }
 
@@ -230,6 +250,40 @@ http_server.get('standalone', (obj, resp) => {
   } catch (e) {
     console.log('ERROR?', e);
     http_server.reply(resp, {
+      err: e,
+    });
+  }
+});
+
+http_server.post('export', async (obj, res) => {
+  try {
+    const resp = await execAsync(`cd ${COMPILER_DIR} && node ${compiler} -d`);
+    const errors = getErrorsFromCompilation(resp);
+
+    if (errors) {
+      http_server.reply(res, {
+        err: null,
+        data: {
+          success: false,
+          err: errors,
+        },
+      });
+      return;
+    }
+
+    await execAsync(
+      `cp ${COMPILER_OUT}/main.compiled.${extension} ${EXPORT_DIR}`
+    );
+    http_server.reply(res, {
+      err: null,
+      data: {
+        success: true,
+        msg: `Exported main.compiled.js to ${EXPORT_DIR}`,
+      },
+    });
+  } catch (e) {
+    console.log('ERROR?', e);
+    http_server.reply(res, {
       err: e,
     });
   }

@@ -10,7 +10,6 @@ const YELLOW = '#F47E1B';
 const G_ui = {
   Loading() {
     const pct = G_display.numLoaded / G_display.numLoading;
-    console.log('LOADING?', pct, G_display.numLoading, G_display.numLoaded);
     const screenSize = 512;
     G_display.drawRect(0, 0, screenSize, screenSize, '#000');
     G_display.drawText('Loading...', 256, 256);
@@ -23,6 +22,86 @@ const G_ui = {
       32,
       '#fff'
     );
+  },
+  Choices({ choices, visible }) {
+    const id = 'Adalais_in_the_arcade_choices_div';
+
+    const getChoicesDiv = mainId => {
+      let div = document.getElementById(mainId);
+      if (!div) {
+        div = document.createElement('div');
+        div.id = mainId;
+        div.style.position = 'absolute';
+        div.style.width = '256px';
+        div.style.bottom = '128px';
+        div.style['font-family'] = 'monospace';
+        // div.style.height = '128px';
+        div.style['margin-left'] = '128px';
+        div.style['margin-right'] = '128px';
+        // div.style.background = '#50576B';
+        // div.style.border = '1px solid white';
+        div.style.overflow = 'hidden';
+        div.style.display = 'flex';
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 0.25s linear';
+        div.style['box-sizing'] = 'border-box';
+        div.style.display = 'flex';
+        div.style['flex-direction'] = 'column';
+        if (G_display.canvas?.parentElement) {
+          G_display.canvas.parentElement.appendChild(div);
+        }
+      }
+      return div;
+    };
+
+    const getChoiceButton = (text, cb, id) => {
+      const div = document.createElement('div');
+      div.id = id;
+      div.innerHTML = text;
+      div.style.padding = '8px';
+      div.style.border = '1px solid white';
+      div.style.margin = '4px';
+      div.style.background = BLACK;
+      div.style['user-select'] = 'none';
+      div.style.cursor = 'pointer';
+      div.style['z-index'] = 1;
+      div.onclick = () => {
+        cb();
+      };
+      div.onmousedown = () => {
+        div.style.background = '#50576B';
+      };
+      div.onmouseup = () => {
+        div.style.background = BLACK;
+      };
+      div.onmouseover = () => {
+        div.style.border = '1px solid ' + YELLOW;
+      };
+      div.onmouseout = () => {
+        div.style.border = '1px solid white';
+        div.style.background = BLACK;
+      };
+      return div;
+    };
+
+    const choicesDiv = getChoicesDiv(id);
+    if (!choicesDiv) {
+      return;
+    }
+
+    choicesDiv.innerHTML = '';
+    choices.forEach(({ text, cb }, i) => {
+      const div = getChoiceButton(text, cb, id + '_' + i);
+      choicesDiv.appendChild(div);
+    });
+
+    if (visible) {
+      choicesDiv.style['pointer-events'] = 'all';
+      choicesDiv.style.opacity = '1';
+    } else {
+      choicesDiv.style['pointer-events'] = 'none';
+      choicesDiv.style.opacity = '0';
+    }
   },
   Dialog({
     text,
@@ -57,6 +136,7 @@ const G_ui = {
         div.style.width = '512px';
         div.style.height = '128px';
         div.style.background = 'url(res/images/ui-black-bar.png)';
+        div.style['font-family'] = 'monospace';
         // div.style.border = '1px solid white';
         div.style.top = '-128px';
         div.style.overflow = 'hidden';
@@ -67,7 +147,9 @@ const G_ui = {
         div.style['user-select'] = 'none';
         div.style['justify-content'] = 'center';
         div.style['box-shadow'] = '0px 0px 32px 16px rgba(16, 30, 41, 0.75)';
-        G_display.canvas.parentElement.appendChild(div);
+        if (G_display.canvas.parentElement) {
+          G_display.canvas.parentElement.appendChild(div);
+        }
       }
       return div;
     };
@@ -98,7 +180,7 @@ const G_ui = {
           nameplate.style.right = 'calc(100% + 4px)';
           nameplate.style['text-align'] = 'right';
         }
-        //nameplate.style.top = '-32px';
+        // nameplate.style.top = '-32px';
         // nameplate.style.width = '100%';
         nameplate.style.fontSize = '12px';
         div.appendChild(nameplate);
@@ -134,7 +216,7 @@ const G_ui = {
     const [rightDiv, rightCanvas, rightNameplate] = getPortraitAndCanvas(
       idRightPortrait
     );
-    textArea.innerHTML = text;
+    textArea.innerHTML = `<div style="width:256px;margin:auto">${text}<div>`;
     leftNameplate.innerHTML = leftPortraitLabel || '';
     rightNameplate.innerHTML = rightPortraitLabel || '';
 
@@ -179,7 +261,7 @@ const G_ui = {
       leftCanvas.style.transform = 'translate(-32px, 8px)';
       leftDiv.style.width = '96px';
       textArea.style.width = 'calc(288px - 32px)';
-      textArea.style['text-align'] = 'right';
+      // textArea.style['text-align'] = 'right';
       rightNameplate.style.color = BLACK;
       rightNameplate.style.background = YELLOW;
       rightNameplate.style['text-decoration'] = 'underline';

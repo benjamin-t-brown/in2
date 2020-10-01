@@ -22,8 +22,8 @@ module.exports = class InputDialog extends React.Component {
       });
     };
     this.handleConfirmClick = window.current_confirm = () => {
-      this.props.hide();
       this.props.on_confirm(this.state.value);
+      this.props.hide();
     };
 
     this.handleCancelClick = window.current_cancel = () => {
@@ -55,8 +55,8 @@ module.exports = class InputDialog extends React.Component {
           'div',
           {
             style: {
-              width: '60%',
-              minWidth: '500px',
+              width: this.props.node ? '60%' : '',
+              minWidth: this.props.node ? '500px' : '350px',
               padding: '5px',
               top: '300px',
               left: window.innerWidth / 2 - 250 + 'px',
@@ -85,7 +85,8 @@ module.exports = class InputDialog extends React.Component {
               id: 'InputDialog-input',
               onChange: this.handleInputChange,
               value: this.state.value,
-              spellCheck: this.props.whitespace ? false : '',
+              spellCheck:
+                this.props.whitespace || !this.props.node ? false : '',
               style: {
                 padding: '5px',
                 background: 'rgb(53, 53, 53)',
@@ -93,7 +94,7 @@ module.exports = class InputDialog extends React.Component {
                 whiteSpace: this.props.whiteSpace ? 'pre' : '',
                 color: css.colors.TEXT_LIGHT,
                 width: '100%',
-                height: this.props.node ? undefined : '20px',
+                height: this.props.node ? undefined : '28px',
                 minHeight: this.props.node ? '65%' : undefined,
               },
             })

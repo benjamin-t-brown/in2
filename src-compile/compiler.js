@@ -143,6 +143,7 @@ function _create_action_node(content, id, childId, isAsync) {
   const ret =
     `// action\n` +
     `scope.${id} = ${isAsync ? 'async ' : ''}() => {\n` +
+    `    player.set(CURRENT_NODE_VAR, '${id}' );\n` +
     `    ${content};\n` +
     `    scope.${childId}();\n` +
     `};\n`;
@@ -406,6 +407,7 @@ class Compiler {
         const nodes_to_compile = [];
         let ret = `// ${node.type}\n`;
         ret += `scope.${node.id} = () => {\n`;
+        ret += `    player.set(CURRENT_NODE_VAR, '${node.id}' );\n`;
         for (let i in children) {
           const child = children[i];
           if (
@@ -765,6 +767,7 @@ class Compiler {
                 node.id,
                 `Declaration node ${node.id} could not be parsed, no '=' found.\n CONTENT ${node.content}`
               );
+              return null;
             }
             this.declarations[
               first.trim().replace(/;/g, '')
@@ -798,6 +801,11 @@ class Compiler {
           ret +=
             `    else {\n` +
             '        core.say(`EXECUTION WARNING, no file exists named ${key}. You are probably running a subset of all the files, and not the whole scenario. ` + Object.keys(files), files.exit);\n' + //eslint-disable-line
+            `    }\n`;
+        } else {
+          ret +=
+            `    else {\n` +
+            '        core.exit();\n' + //eslint-disable-line
             `    }\n`;
         }
         ret += `};\n\n`;
@@ -972,6 +980,10 @@ const compile = function (inputFiles, outputUrls) {
 };
 
 const argv = require('minimist')(process.argv.slice(2));
+
+if (argv.d) {
+  includeDebugStatements = false;
+}
 
 if (argv.file) {
   console.log('Compiling ' + argv.file + '...');

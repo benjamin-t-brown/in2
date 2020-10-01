@@ -145,6 +145,7 @@ module.exports = class PlayerArea extends expose.Component {
                 .loadFileExternal(arr.title, () => {
                   const id = arr.id.slice(6);
                   expose.get_state('board').centerOnNode(id);
+                  console.log('CENTER ON NODE', id);
                   $('#' + id).addClass('item-error');
                 });
             } else {
@@ -204,7 +205,7 @@ module.exports = class PlayerArea extends expose.Component {
           'Close'
         )
       ),
-      <div id="canvasArea">
+      <div id="canvasArea" style={{ position: 'relative', height: '512px' }}>
         <canvas width="1" height="1" id="player-canvas"></canvas>
       </div>,
       React.createElement(
