@@ -13,7 +13,7 @@ exports.setSaveData = initialState => {
   );
 };
 exports.getSaveData = () => {
-  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_SAVE_STATE_KEY) || {});
+  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_SAVE_STATE_KEY) || '{}');
 };
 
 const _console_log = text => {
